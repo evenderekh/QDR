@@ -14,7 +14,7 @@ JSON data consumed by the Qumran Digital Reader (https://qumran.dev)
             "[ ב",          // Surface form (full)
             "בְּ",            // Lemma
             "ptcl",         // Morphology
-            "Num 23:5"      // Biblical verse (only for Biblical scrolls)
+            "Num 23:5"      // Biblical verse or fragment number
           ]
         ]
       ]
