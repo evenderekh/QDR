@@ -1,7 +1,7 @@
-# QDR
-JSON data consumed by the Qumran Digital Reader (https://qumran.dev)
+# QDR  
+JSON data consumed by the [Qumran Digital Reader](https://qumran.dev)
 
-# Schema
+# Schema  
 ```jsonc
 [                           // Open the Dead Sea Scrolls (Biblical or Non-Biblical)
   {                         // Open the first scroll
@@ -12,7 +12,7 @@ JSON data consumed by the Qumran Digital Reader (https://qumran.dev)
           [                 // Open the first word block (5 items):
             "ב",            // Surface form (no damage marks)
             "[ ב",          // Surface form (full)
-            "בְּ",            // Lemma
+            "בְּ",           // Lemma
             "ptcl",         // Morphology
             "Num 23:5"      // Biblical verse or fragment number
           ]
@@ -23,8 +23,8 @@ JSON data consumed by the Qumran Digital Reader (https://qumran.dev)
 ]
 ```
 
-# License
-CC-BY-NC 4.0 (https://creativecommons.org/licenses/by-nc/4.0/)
+# License  
+[CC-BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/)
 
-# Source
-The Dead Sea Scrolls in Text-Fabric (https://github.com/ETCBC/dss)
+# Source  
+[The Dead Sea Scrolls in Text-Fabric](https://github.com/ETCBC/dss)
