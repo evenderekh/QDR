@@ -21,3 +21,10 @@ JSON data consumed by the Qumran Digital Reader (https://qumran.dev)
     ]
   }
 ]
+```
+
+# License
+CC-BY-NC 4.0 (https://creativecommons.org/licenses/by-nc/4.0/)
+
+# Source
+The Dead Sea Scrolls in Text-Fabric (https://github.com/ETCBC/dss)
