@@ -1,0 +1,1808 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>4Q83 - Qumran Digital Reader (QDR) - Free, open-source access to the entire Dead Sea Scrolls in Unicode Hebrew</title>
+    <link rel="icon" type="image/png" href="/static/icons/favicon.png">
+    <script src="/static/lex.js"></script>
+    <script src="/static/nav.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Inter:wght@300;400;500&display=swap');
+
+        @font-face {
+            font-family: 'QumranScroll';
+            src: url('/static/fonts/4Q416jan.ttf') format('truetype');
+            font-display: swap;
+        }
+        @font-face {
+            font-family: 'QumranPaleo';
+            src: url('/static/fonts/QUMRAN.ttf') format('truetype');
+            font-display: swap;
+        }
+        @font-face {
+            font-family: 'QumranModern';
+            src: url('/static/fonts/noto-sans-hebrew.woff2') format('woff2');
+            font-display: swap;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background:
+                radial-gradient(ellipse 90% 55% at 50% -5%, rgba(160, 110, 40, 0.38) 0%, transparent 65%),
+                radial-gradient(ellipse 55% 45% at 8% 65%, rgba(90, 58, 18, 0.22) 0%, transparent 55%),
+                radial-gradient(ellipse 55% 45% at 92% 65%, rgba(90, 58, 18, 0.22) 0%, transparent 55%),
+                linear-gradient(180deg, #1c1510 0%, #201810 40%, #1a1410 70%, #130f08 100%);
+            min-height: 100vh;
+            color: #f4f1e8;
+            overflow: hidden;
+            position: relative;
+            --font-scale: 1;
+        }
+
+        .scroll-card { text-decoration: none; }
+        .scroll-card:hover { text-decoration: none; }
+
+        .scroll-nav a, h1 a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .scroll-nav a:hover, h1 a:hover {
+            color: #DAA520;
+            transition: color 0.3s ease;
+        }
+
+        /* Ambient atmosphere */
+        .scriptorium-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* Wall texture */
+        .scriptorium-bg::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background:
+                repeating-linear-gradient(90deg,
+                    transparent 0px,
+                    rgba(139, 69, 19, 0.06) 1px,
+                    transparent 2px,
+                    transparent 40px
+                ),
+                repeating-linear-gradient(0deg,
+                    transparent 0px,
+                    rgba(139, 69, 19, 0.06) 1px,
+                    transparent 2px,
+                    transparent 40px
+                );
+            opacity: 0.35;
+        }
+
+        /* Static dust — 8 pre-baked particles, no JS */
+        .dust-particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(218, 165, 32, 0.45);
+            border-radius: 50%;
+            box-shadow: 0 0 4px rgba(218, 165, 32, 0.35);
+            animation: float 20s infinite linear;
+        }
+
+        @keyframes float {
+            0%   { transform: translateY(100vh) translateX(0px) rotate(0deg);   opacity: 0; }
+            10%  { opacity: 0.7; }
+            90%  { opacity: 0.7; }
+            100% { transform: translateY(-100px) translateX(50px) rotate(180deg); opacity: 0; }
+        }
+
+        /* Light rays — CSS only, gentle flicker */
+        .light-ray {
+            position: absolute;
+            top: 0;
+            width: 130px;
+            height: 100%;
+            background: linear-gradient(180deg, rgba(218, 165, 32, 0.11) 0%, transparent 65%);
+            pointer-events: none;
+            animation: flicker 7s ease-in-out infinite alternate;
+        }
+
+        .light-ray:nth-child(1) { left: 10%; transform: rotate(-15deg); animation-delay: 0s; }
+        .light-ray:nth-child(2) { left: 70%; transform: rotate(10deg);  animation-delay: 3.5s; }
+
+        @keyframes flicker {
+            0%   { opacity: 0.38; }
+            100% { opacity: 0.12; }
+        }
+
+        /* Header */
+        .header {
+            position: relative;
+            z-index: 10;
+            background: linear-gradient(180deg, rgba(36, 27, 17, 0.98) 0%, rgba(22, 16, 10, 0.97) 100%);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(218, 165, 32, 0.35);
+            padding: 1rem 2rem;
+            box-shadow:
+                0 4px 24px rgba(0, 0, 0, 0.65),
+                0 1px 0 rgba(218, 165, 32, 0.12);
+        }
+
+        h1 {
+            font-family: 'Cinzel', serif;
+            font-size: 2rem;
+            color: #DAA520;
+            text-align: center;
+            margin-bottom: 0.5rem;
+            text-shadow:
+                0 0 40px rgba(218, 165, 32, 0.3),
+                2px 2px 5px rgba(0, 0, 0, 0.9);
+        }
+
+        .scroll-info {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+            color: #C4B5A0;
+            font-size: 0.9rem;
+        }
+
+        .scroll-nav, .passage-nav {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-arrow {
+            cursor: pointer;
+            color: #DAA520;
+            transition: all 0.3s ease;
+            padding: 0.25rem;
+        }
+
+        .nav-arrow:hover {
+            color: #F4D03F;
+            transform: scale(1.2);
+        }
+
+        .nav-dropdowns {
+            display: flex;
+            gap: 0.4rem;
+            align-items: center;
+        }
+
+        .nav-select {
+            background: rgba(18, 12, 5, 0.88);
+            color: #c9b460;
+            border: 1px solid rgba(218, 165, 32, 0.28);
+            border-radius: 5px;
+            padding: 0.18rem 0.4rem;
+            font-family: 'Cinzel', serif;
+            font-size: 0.78rem;
+            cursor: pointer;
+            appearance: none;
+            -webkit-appearance: none;
+            outline: none;
+            max-width: 130px;
+        }
+
+        .nav-select:hover, .nav-select:focus {
+            border-color: rgba(218, 165, 32, 0.6);
+            color: #DAA520;
+        }
+
+        .nav-select option {
+            background: #120c05;
+            color: #c9b460;
+        }
+
+        .nav-select option:disabled {
+            color: #4a3c20;
+        }
+
+        .header-buttons {
+            position: absolute;
+            right: 2rem;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .font-btn-group {
+            display: flex;
+            border: 1px solid rgba(218, 165, 32, 0.45);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .font-btn {
+            background: linear-gradient(150deg, #3a1e0a 0%, #4a2810 100%);
+            color: #a09070;
+            border: none;
+            border-right: 1px solid rgba(218, 165, 32, 0.25);
+            padding: 0.5rem 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.85rem;
+            white-space: nowrap;
+        }
+
+        .font-btn:last-child { border-right: none; }
+
+        .font-btn:hover {
+            background: linear-gradient(150deg, #5a2e10 0%, #6b3810 100%);
+            color: #d4b870;
+        }
+
+        .font-btn.active {
+            background: linear-gradient(150deg, #6b3410 0%, #8B4513 55%, #7a3c10 100%);
+            color: #f4f1e8;
+            box-shadow: inset 0 1px 0 rgba(255, 200, 100, 0.15);
+        }
+
+        .lang-toggle {
+            background: linear-gradient(150deg, #6b3410 0%, #8B4513 55%, #7a3c10 100%);
+            color: #f4f1e8;
+            border: 1px solid rgba(218, 165, 32, 0.45);
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+            box-shadow:
+                0 2px 10px rgba(0, 0, 0, 0.4),
+                inset 0 1px 0 rgba(255, 200, 100, 0.1);
+            white-space: nowrap;
+        }
+
+        .lang-toggle:hover {
+            background: linear-gradient(150deg, #8B4513 0%, #A0522D 55%, #8B4513 100%);
+            border-color: #DAA520;
+            transform: scale(1.05);
+            box-shadow:
+                0 4px 18px rgba(0, 0, 0, 0.55),
+                inset 0 1px 0 rgba(255, 200, 100, 0.15);
+        }
+
+        /* Scroll container */
+        .scroll-container {
+            position: relative;
+            z-index: 5;
+            height: calc(100vh - 140px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 1rem 2rem;
+        }
+
+        .parchment-wrapper {
+            display: flex;
+            align-items: center;
+            max-width: min(1800px, 97vw);
+            width: 100%;
+            height: 87%;
+            position: relative;
+            box-shadow:
+                0 0 120px rgba(110, 75, 20, 0.28),
+                0 30px 80px rgba(0, 0, 0, 0.7),
+                0 -8px 35px rgba(160, 115, 40, 0.12);
+        }
+
+        /* Wooden rollers */
+        .scroll-roll {
+            width: 80px;
+            height: 100%;
+            position: relative;
+            z-index: 3;
+            flex-shrink: 0;
+        }
+
+        .scroll-roll.left {
+            background: linear-gradient(90deg,
+                #0d0a06 0%,
+                #2a1e0c 12%,
+                #4e3818 28%,
+                #6e5025 42%,
+                #7e5c2c 50%,
+                #6a4c22 58%,
+                #4a3416 72%,
+                #2a1e0c 86%,
+                #0d0a06 100%
+            );
+            border-radius: 40px 8px 8px 40px;
+            box-shadow:
+                inset -14px 0 26px rgba(0, 0, 0, 0.65),
+                inset 6px 0 14px rgba(200, 160, 80, 0.08),
+                -6px 0 18px rgba(0, 0, 0, 0.45);
+        }
+
+        .scroll-roll.right {
+            background: linear-gradient(90deg,
+                #0d0a06 0%,
+                #2a1e0c 14%,
+                #4a3416 28%,
+                #6a4c22 42%,
+                #7e5c2c 50%,
+                #6e5025 58%,
+                #4e3818 72%,
+                #2a1e0c 88%,
+                #0d0a06 100%
+            );
+            border-radius: 8px 40px 40px 8px;
+            box-shadow:
+                inset 14px 0 26px rgba(0, 0, 0, 0.65),
+                inset -6px 0 14px rgba(200, 160, 80, 0.08),
+                6px 0 18px rgba(0, 0, 0, 0.45);
+        }
+
+        /* Parchment surface */
+        .parchment {
+            flex: 1;
+            height: 100%;
+            position: relative;
+            overflow: hidden;
+            background: #1c1610;
+        }
+
+        .parchment-background {
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 75% 55% at 50% 35%, #382c1a 0%, #2a2014 55%, #1c1610 100%),
+                url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><filter id="n"><feTurbulence baseFrequency="0.9" numOctaves="4" /></filter><rect width="100" height="100" filter="url(%23n)" opacity="0.1"/></svg>');
+        }
+
+        /* Damage overlay */
+        .damage-overlay {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            mix-blend-mode: multiply;
+        }
+
+        .age-stain {
+            position: absolute;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.05) 40%, transparent 70%);
+            filter: blur(3px);
+        }
+
+        .worm-hole {
+            position: absolute;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.15) 60%, transparent 100%);
+        }
+
+        .burn-mark {
+            position: absolute;
+            border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+            background: radial-gradient(ellipse at center,
+                rgba(60,40,25,0.3) 0%,
+                rgba(50,35,20,0.2) 20%,
+                rgba(40,30,20,0.1) 40%,
+                rgba(30,25,20,0.05) 60%,
+                transparent 90%);
+            filter: blur(2px);
+            transform: rotate(var(--rotation, 0deg));
+        }
+
+        .water-damage {
+            position: absolute;
+            border-radius: 40% 60% 50% 50% / 50% 40% 60% 50%;
+            background: radial-gradient(ellipse at 40% 40%,
+                transparent 20%,
+                rgba(0,0,0,0.02) 30%,
+                rgba(0,0,0,0.04) 50%,
+                rgba(0,0,0,0.02) 70%,
+                transparent 90%);
+            transform: rotate(var(--rotation, 0deg));
+            filter: blur(1px);
+        }
+
+        .torn-edge {
+            position: absolute;
+            background: rgba(0,0,0,0.2);
+            filter: blur(4px);
+            border-radius: 10% 90% 20% 80% / 80% 20% 90% 10%;
+        }
+
+        /* Scroll content */
+        .scroll-content {
+            position: relative;
+            z-index: 2;
+            padding: 2rem 3rem;
+            height: 100%;
+            overflow-x: auto;
+            overflow-y: hidden;
+            cursor: grab;
+            user-select: none;
+            /* scroll-behavior intentionally omitted — momentum handled in JS */
+            direction: rtl;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+            column-width: 420px;
+            column-gap: 5rem;
+            column-fill: auto;
+        }
+
+        .scroll-content::-webkit-scrollbar { display: none; }
+        .scroll-content:active { cursor: grabbing; }
+
+        .verse-container {
+            margin-bottom: 1.5rem;
+            break-inside: avoid;
+        }
+
+        .verse-reference {
+            font-family: 'Cinzel', serif;
+            color: #DAA520;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+            opacity: 0.8;
+        }
+
+        .verse-frag {
+            font-family: sans-serif;
+            font-size: 0.65em;
+            font-weight: normal;
+            opacity: 0.45;
+            margin-left: 0.5em;
+            letter-spacing: 0;
+        }
+
+        .verse-text {
+            line-height: 2;
+            white-space: normal;
+        }
+
+        .hebrew-mode .verse-text {
+            font-size: calc(1.8rem * var(--font-scale));
+            direction: rtl;
+            text-align: right;
+            color: #E6D7C3;
+            transition: font-size 0.3s ease;
+        }
+
+        .font-scroll .verse-text     { font-family: 'QumranScroll', 'Times New Roman', serif; }
+        .font-scroll .tetragrammaton { font-family: 'QumranPaleo', 'QumranScroll', serif; font-size: 0.8em; }
+        .font-paleo  .verse-text     { font-family: 'QumranPaleo', 'Times New Roman', serif; font-size: calc(1.3rem * var(--font-scale)); }
+        .font-modern .verse-text     { font-family: 'QumranModern', 'Noto Sans Hebrew', sans-serif; }
+
+        .hebrew-word {
+            display: inline-block;
+            padding: 0.2rem 0.4rem;
+            margin: 0.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-radius: 4px;
+        }
+
+        .hebrew-word:hover {
+            background: rgba(218, 165, 32, 0.18);
+            color: #F4D03F;
+            transform: scale(1.05);
+        }
+
+        /* Prefix particles and maqqef — suppress inter-word spacing */
+        .prefix-particle { margin-left: 0; padding-left: 0; }
+        .prefix-particle + .hebrew-word { margin-right: 0; padding-right: 0; }
+        .maqqef-token { margin: 0; padding: 0; cursor: default; }
+        .maqqef-token + .hebrew-word { margin-right: 0; padding-right: 0; }
+        .before-maqqef { margin-left: 0; padding-left: 0; }
+
+        /* Damage mark styling — active in Scroll/Paleo modes */
+        .dmg-unc1 { color: #c8b040; }
+        .dmg-unc2 { color: #c07830; }
+        .dmg-unc3 { color: #b05020; }
+        .dmg-unc4 { color: #a03018; }
+        .dmg-recon { color: #786860; opacity: 0.65; }
+        .dmg-removed { text-decoration: line-through; color: #786860; opacity: 0.55; }
+        .dmg-supra { color: #7aaccc; font-size: 0.6em; vertical-align: super; }
+        .dmg-anc { color: #6a9860; }
+        .dmg-mod { color: #7878b8; }
+        .dmg-missing { color: #504040; opacity: 0.45; }
+
+        /* Navigation controls */
+        .controls {
+            position: fixed;
+            bottom: 3.75rem;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .scroll-btn {
+            background: linear-gradient(150deg, #6b3410 0%, #8B4513 55%, #7a3c10 100%);
+            color: #f4f1e8;
+            border: 1px solid rgba(218, 165, 32, 0.45);
+            border-radius: 50%;
+            width: 38px;
+            height: 38px;
+            cursor: pointer;
+            touch-action: manipulation;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow:
+                0 4px 16px rgba(0, 0, 0, 0.4),
+                inset 0 1px 0 rgba(255, 200, 100, 0.1);
+        }
+
+        .scroll-btn:hover {
+            background: linear-gradient(150deg, #8B4513 0%, #A0522D 55%, #8B4513 100%);
+            border-color: #DAA520;
+            transform: scale(1.1);
+            box-shadow:
+                0 6px 22px rgba(0, 0, 0, 0.55),
+                inset 0 1px 0 rgba(255, 200, 100, 0.15);
+        }
+
+        .scroll-btn.active {
+            border-color: rgba(218, 165, 32, 0.6);
+            color: #DAA520;
+        }
+
+        /* Search popup */
+        .search-popup {
+            position: fixed;
+            bottom: 7rem;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 480px;
+            max-width: 90vw;
+            background: linear-gradient(160deg, rgba(32, 24, 14, 0.98) 0%, rgba(20, 15, 9, 0.98) 100%);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(218, 165, 32, 0.3);
+            border-radius: 12px;
+            padding: 1rem;
+            z-index: 25;
+            display: none;
+            box-shadow: 0 10px 35px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(218, 165, 32, 0.1);
+        }
+
+        .search-popup.active { display: block; }
+
+        .search-input {
+            width: 100%;
+            box-sizing: border-box;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(218, 165, 32, 0.25);
+            border-radius: 6px;
+            color: #f4f1e8;
+            font-family: inherit;
+            font-size: 0.95rem;
+            padding: 0.6rem 0.8rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .search-input:focus { border-color: rgba(218, 165, 32, 0.55); }
+        .search-input::placeholder { color: rgba(196, 181, 160, 0.35); }
+
+        .search-results {
+            margin-top: 0.6rem;
+            max-height: 280px;
+            overflow-y: auto;
+        }
+        .search-results::-webkit-scrollbar { width: 3px; }
+        .search-results::-webkit-scrollbar-thumb { background: rgba(218, 165, 32, 0.3); border-radius: 2px; }
+
+        .search-result {
+            padding: 0.5rem 0.4rem;
+            border-bottom: 1px solid rgba(218, 165, 32, 0.08);
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background 0.15s;
+        }
+        .search-result:last-child { border-bottom: none; }
+        .search-result:hover { background: rgba(218, 165, 32, 0.07); }
+
+        .search-result-title {
+            color: #DAA520;
+            font-size: 0.85rem;
+            font-weight: 500;
+            font-family: 'Cinzel', serif;
+        }
+
+        .search-result-excerpt {
+            color: #C4B5A0;
+            font-size: 0.8rem;
+            margin-top: 0.2rem;
+            line-height: 1.4;
+        }
+        .search-result-excerpt mark {
+            background: rgba(218, 165, 32, 0.2);
+            color: #f4f1e8;
+            border-radius: 2px;
+            padding: 0 2px;
+        }
+        .search-status {
+            color: rgba(196, 181, 160, 0.45);
+            font-size: 0.8rem;
+            padding: 0.4rem;
+            font-style: italic;
+        }
+
+        /* Linguistic panel */
+        .linguistic-panel {
+            position: absolute;
+            bottom: 2rem;
+            right: 2rem;
+            background: linear-gradient(160deg, rgba(32, 24, 14, 0.97) 0%, rgba(20, 15, 9, 0.97) 100%);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(218, 165, 32, 0.3);
+            border-radius: 12px;
+            padding: 1.25rem 1.5rem 1.25rem;
+            min-width: 260px;
+            max-width: 340px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+            z-index: 15;
+            pointer-events: none;
+            box-shadow:
+                0 10px 35px rgba(0, 0, 0, 0.6),
+                inset 0 1px 0 rgba(218, 165, 32, 0.1);
+        }
+
+        .linguistic-panel.active {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            margin-bottom: 0.25rem;
+        }
+
+        .linguistic-panel h3 {
+            font-family: 'Cinzel', serif;
+            color: #DAA520;
+            margin: 0;
+            font-size: 1.3rem;
+            text-shadow: 0 0 20px rgba(218, 165, 32, 0.3);
+            direction: rtl;
+        }
+
+        .linguistic-panel.locked {
+            border-left: 3px solid rgba(218, 165, 32, 0.6);
+        }
+
+        .panel-close {
+            background: none;
+            border: none;
+            color: rgba(218,165,32,0.4);
+            font-size: 1.1rem;
+            cursor: pointer;
+            padding: 0 0 0 0.75rem;
+            line-height: 1;
+            flex-shrink: 0;
+            display: none;
+        }
+        .linguistic-panel.locked .panel-close { display: block; }
+        .panel-close:hover { color: #DAA520; }
+
+        .panel-lemma-row {
+            color: rgba(196,181,160,0.55);
+            font-size: 0.78rem;
+            margin-bottom: 0.8rem;
+            font-family: monospace;
+            direction: rtl;
+        }
+
+        .panel-def {
+            color: #C4B5A0;
+            font-size: 0.85rem;
+            line-height: 1.5;
+            margin-bottom: 0.75rem;
+        }
+
+        .panel-def .strongs-id {
+            display: block;
+            color: #B8860B;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .panel-def .no-def {
+            color: rgba(196,181,160,0.35);
+            font-style: italic;
+        }
+
+        .panel-morph {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 0.15rem 0.75rem;
+            font-size: 0.8rem;
+            color: #C4B5A0;
+            border-top: 1px solid rgba(218,165,32,0.12);
+            padding-top: 0.65rem;
+        }
+
+        .panel-morph:empty { display: none; }
+
+        .morph-label {
+            color: #B8860B;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        /* Desk */
+        .desk-surface {
+            position: fixed;
+            bottom: -150px;
+            left: 50%;
+            transform: translateX(-50%) rotateX(70deg);
+            width: 120%;
+            height: 300px;
+            background: linear-gradient(45deg,
+                #080604 0%,
+                #1a100a 15%,
+                #2c1c0e 30%,
+                #382214 45%,
+                #362012 50%,
+                #2c1c0e 65%,
+                #1a100a 80%,
+                #080604 100%
+            );
+            border-radius: 20px 20px 0 0;
+            box-shadow:
+                0 -60px 120px rgba(20, 12, 5, 0.7),
+                inset 0 12px 35px rgba(0, 0, 0, 0.5),
+                inset 0 -10px 30px rgba(80, 50, 20, 0.06);
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        .desk-surface::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background:
+                repeating-linear-gradient(90deg,
+                    transparent 0px, rgba(0,0,0,0.08) 1px, transparent 2px, transparent 30px
+                ),
+                repeating-linear-gradient(0deg,
+                    transparent 0px, rgba(0,0,0,0.08) 1px, transparent 2px, transparent 40px
+                );
+            border-radius: inherit;
+            opacity: 0.5;
+        }
+
+        /* Footer */
+        .footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 20;
+            background: rgba(28, 18, 10, 0.92);
+            border-top: 1px solid rgba(218, 165, 32, 0.15);
+            padding: 0.35rem 2rem;
+            text-align: center;
+            color: #555;
+            font-size: 0.75rem;
+            backdrop-filter: blur(6px);
+        }
+
+        .footer a {
+            color: #8a7040;
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            color: #c9b037;
+            text-decoration: underline;
+            text-decoration-thickness: 1px;
+        }
+
+        @media (max-width: 768px) {
+            .header { padding: 1rem; }
+            h1 { font-size: 1.5rem; }
+
+            .header-buttons {
+                position: static;
+                transform: none;
+                margin-top: 1rem;
+                width: 100%;
+                gap: 0.5rem;
+                flex-direction: column;
+            }
+
+            .lang-toggle { width: 100%; }
+
+            .scroll-container {
+                padding: 1rem;
+                height: calc(100vh - 200px);
+                align-items: flex-start;
+            }
+
+            .scroll-roll { width: 40px; }
+            .verse-container { padding: 0 1rem; }
+            .controls { bottom: 5.5rem; }
+            .search-popup { bottom: 9rem; }
+
+            .linguistic-panel {
+                right: 1rem;
+                left: 1rem;
+                bottom: 5rem;
+                max-width: none;
+            }
+
+            .footer-l1 { display: block; }
+            .footer-l2 { display: block; }
+            .footer-line-sep { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Background atmosphere -->
+    <div class="scriptorium-bg">
+        <div class="light-ray"></div>
+        <div class="light-ray"></div>
+        <div class="dust-particle" style="left:7%;animation-delay:0s;animation-duration:19s;width:5px;height:5px"></div>
+        <div class="dust-particle" style="left:19%;animation-delay:4s;animation-duration:23s;width:3px;height:3px"></div>
+        <div class="dust-particle" style="left:34%;animation-delay:8s;animation-duration:17s;width:6px;height:6px"></div>
+        <div class="dust-particle" style="left:48%;animation-delay:2s;animation-duration:21s;width:4px;height:4px"></div>
+        <div class="dust-particle" style="left:63%;animation-delay:12s;animation-duration:18s;width:3px;height:3px"></div>
+        <div class="dust-particle" style="left:77%;animation-delay:6s;animation-duration:25s;width:5px;height:5px"></div>
+        <div class="dust-particle" style="left:13%;animation-delay:15s;animation-duration:16s;width:4px;height:4px"></div>
+        <div class="dust-particle" style="left:91%;animation-delay:10s;animation-duration:22s;width:6px;height:6px"></div>
+    </div>
+
+    <!-- Desk -->
+    <div class="desk-surface"></div>
+
+    <!-- Header -->
+    <div class="header">
+        <h1><a href="../index2.html">Qumran Digital Reader (QDR)</h1></a>
+        <div class="scroll-info">
+            <div class="scroll-nav">
+                <a href="../4Q82/"><span class="nav-arrow prev-scroll">&larr;</span></a>
+                <div class="nav-dropdowns">
+                    <select class="nav-select" id="navType">
+                        <option value="biblical">Biblical</option>
+                        <option value="non_biblical">Non-Biblical</option>
+                    </select>
+                    <select class="nav-select" id="navGroup"></select>
+                    <select class="nav-select" id="navScroll" style="display:none;"></select>
+                </div>
+                <a href="../4Q84/"><span class="nav-arrow next-scroll">&rarr;</span></a>
+            </div>
+        </div>
+        <div class="header-buttons">
+            <div class="font-btn-group">
+                <button class="font-btn active" data-font="font-scroll">Scroll</button>
+                <button class="font-btn" data-font="font-paleo">Paleo</button>
+                <button class="font-btn" data-font="font-modern">Modern</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main scroll viewer -->
+    <div class="scroll-container">
+        <div class="parchment-wrapper">
+            <div class="scroll-roll left"></div>
+            <div class="parchment">
+                <div class="parchment-background"></div>
+                <div class="damage-overlay" id="damageOverlay"></div>
+                <div class="scroll-content" id="scrollContent"></div>
+            </div>
+            <div class="scroll-roll right"></div>
+        </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="controls">
+        <button class="scroll-btn" id="fontSmaller">A-</button>
+        <button class="scroll-btn" id="fontBigger">A+</button>
+        <button class="scroll-btn" id="scrollLeft">&larr;</button>
+        <button class="scroll-btn" id="scrollRight">&rarr;</button>
+        <button class="scroll-btn" id="searchBtn" aria-label="Search">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="5.5" cy="5.5" r="4"/>
+                <line x1="8.5" y1="8.5" x2="13" y2="13"/>
+            </svg>
+        </button>
+    </div>
+
+    <!-- Search popup -->
+    <div class="search-popup" id="searchPopup">
+        <input class="search-input" id="searchInput" type="text" placeholder="Search scrolls…" autocomplete="off" spellcheck="false">
+        <div class="search-results" id="searchResults"></div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        <span class="footer-l1">© 2026 Michael Muzar
+        <a href="https://github.com/evenderekh/qdr" target="_blank" rel="noopener" aria-label="GitHub repository"><img src="/static/github-logo-small.png" alt="GitHub" style="width:16px;height:16px;vertical-align:middle;opacity:0.6;margin:0 6px;"></a>
+        <a href="/license">LICENSE</a></span><span class="footer-line-sep">&nbsp;·&nbsp;</span><span class="footer-l2"><a href="/about">About</a>&nbsp;·&nbsp;<span class="footer-contact-wrap"><a href="#" class="footer-contact-link" onclick="this.style.display='none';this.parentNode.querySelector('.footer-contact-addr').style.display='inline';return false;">Contact</a><span class="footer-contact-addr" style="display:none;" onclick="this.style.display='none';this.parentNode.querySelector('.footer-contact-link').style.display='inline';">support AT qumran.dev</span></span>&nbsp;·&nbsp;<a href="/privacy">Privacy</a>&nbsp;·&nbsp;<a href="/terms">Terms</a></span>
+    </div>
+
+    <!-- Linguistic panel -->
+    <div class="linguistic-panel" id="linguisticPanel">
+        <div class="panel-header">
+            <h3 id="selectedWord"></h3>
+            <button id="panelClose" class="panel-close" aria-label="Close">×</button>
+        </div>
+        <div id="panelLemmaRow" class="panel-lemma-row"></div>
+        <div id="panelDef" class="panel-def"></div>
+        <div id="panelMorph" class="panel-morph"></div>
+    </div>
+
+    <script>
+        const hebrewData = [
+            { reference: "Ps 5:9", frag: "f1:1", words: [["ε"," # ","0"], ["שורר׳י","שֹׁורֵר","ncmpcX1cs"], ["הושר","ישׁר","vhvms"], ["ל","לְ","Pp"], ["פנ׳י","פָּנֶה","ncbpcX1cs"], [" ]ד#ר#כ׳כה","דֶּרֶךְ","ncbscX2ms"], ["׃","",""]] },
+            { reference: "Ps 5:10", frag: "f1:1", words: [["א #  #  # [ ","א #  #  # ","0"], ["ε"," # ","0"], ["ε"," # ","0"], ["כי","כִּי_2","Pc"], ["אין","אַיִן_1","Pd"], ["ב","בְּ","Pp"], ["פי׳הו","פֶּה","ncmscX3ms"], ["נכונה","כון","vnPfs"], ["קרב׳ם","קֶרֶב","ncmscX3mp"], ["הוות","הַוָּה_2","ncfp"], ["קבר","קֶבֶר","ncms"], ["פתוח","פתח_1","vqsms"], ["גרונ׳ם","גָּרֹון","ncmscX3mp"], ["לשונ׳ם","לָשֹׁון","ncbscX3mp"], ["י ]ח##ליקו?׳ן","חלק_1","vhi3mpXn"], ["׃","",""]] },
+            { reference: "Ps 5:11", frag: "f1:2", words: [["ה##א##שימ׳ו","אשׁם","vhvmsX3ms"], ["אלה##[ ים ]","אֱלֹהִים","ncmp"], ["[ יפלו","נפל","vqi3mp"], ["מ","מִן","Pp"], ["מעצותי׳הם","מֹועֵצָה","ncfpcX3mp"], ["ב","בְּ","Pp"], ["רב","רֹב","ncmsc"], ["פשעי׳הם","פֶּשַׁע","ncmpcX3mp"], ["הדיח׳מו","נדח_1","vhvmsX3mp"], ["כי","כִּי_2","Pc"], ["מרו","מרה","vqp3cp"], ["ב׳ך","בְּ","PpX2ms"], ["׃","",""]] },
+            { reference: "Ps 5:12", frag: "f1:3", words: [["ו","וְ","Pc"], ["ישמחו","שׂמח","vqi3mp"], ["כול ]","כֹּל","ncmsc"], ["ח##סי","חסה","vqPmpc"], ["ב׳כה","בְּ","PpX2ms"], ["ל","לְ","Pp"], ["עולם","עֹולָם","ncms"], ["ירנ#?[ נו ]","רנן","vpi3mp"], ["[ ו","וְ","Pc"], ["תסך","סכך_1","vhi2ms"], ["עלי׳מו","עַל_2","PpX3mp"], ["ו","וְ","Pc"], ["יעלצו","עלץ","vqi3mp"], ["ב׳כה","בְּ","PpX2ms"], ["אהבי","אהב","vqPmpc"], ["שמ׳כה","שֵׁם_1","ncmscX2ms"], ["׃","",""]] },
+            { reference: "Ps 5:13", frag: "f1:4", words: [["כי","כִּי_2","Pc"], ["אתה","אַתָּה","pi2ms"], ["תברך","ברך_2","vpi2ms"], ["צדיק","צַדִּיק","ams"], [" ]י#?הוה","יהוה","np"], ["ב","בְּ","Pp+Pa"], ["צנה","צִנָּה_2","ncfs"], ["רצ##ו#?ן?","רָצֹון","ncms"], ["תעטר׳נ#?[ ו ]","עטר","vqi2msX3ms"], ["׃","",""], ["ε"," # ","0"]] },
+            { reference: "Ps 6:1", frag: "f1:6", words: [["[ ל","לְ","Pp+Pa"], ["מנצח","נצח","vpPms"], ["ב","בְּ","Pp"], ["נגינות","נְגִינָה","ncfp"], ["על","עַל_2","Pp"], ["ה","הַ","Pa"], ["שמינית","שְׁמִינִי","uofsa"], ["מזמור","מִזְמֹור","ncms"], ["ל","לְ","Pp"], ["דוד","דָּוִד","np"], ["׃","",""]] },
+            { reference: "Ps 6:2", frag: "f1:6", words: [["יהוה","יהוה","np"], ["אל","אַל","Pd"], ["ב","בְּ","Pp"], ["אפ׳כה","אַף_2","ncmscX2ms"], ["תוכי ]ח##׳ני","יכח","vhi2msX1cs"], ["ו","וְ","Pc"], ["אל","אַל","Pd"], ["ב","בְּ","Pp"], ["חמת׳כה","חֵמָה","ncfscX2ms"], ["ת##[ יסר׳ני ]","יסר_1","vpi2msX1cs"], ["׃","",""]] },
+            { reference: "Ps 6:3", frag: "f1:7", words: [["[ חנ׳ני","חנן_1","vqvmsX1cs"], ["יהוה","יהוה","np"], ["כי","כִּי_2","Pc"], ["אמלל","אֻמְלַל","ams"], ["אני","אֲנִי","pi1cs"], ["רפא׳ני","רפא","vqvmsX1cs"], ["יהוה","יהוה","np"], ["כי","כִּי_2","Pc"], ["נבהלו","בהל","vnp3cp"], ["עצמ׳י","עֶצֶם_1","ncfpcX1cs"], ["׃","",""]] },
+            { reference: "Ps 6:4", frag: "f1:7", words: [["ו","וְ","Pc"], ["נפש׳י","נֶפֶשׁ","ncbscX1cs"], [" ]נ(# ב##ה #)לה","בהל","vnp3fs"], ["מא##ד","מְאֹד","Pd"], ["[ ו","וְ","Pc"], ["את","אַתְּ","pi2ms"], ["יהוה","יהוה","np"], ["עד","עַד_3","Pp"], ["מתי ]","מָתַי","Pg"], ["׃","",""]] },
+            { reference: "Ps 6:5", frag: "f1:8", words: [["ε"," # ","0"], ["׃","",""]] },
+            { reference: "Ps 6:6", frag: "f1:8", words: [[" ] #  # [ "," #  #  # ","0"], ["ε"," # ","0"], ["׃","",""]] },
+            { reference: "Ps 25:8", frag: "f2:1", words: [["[ טוב","טֹוב_1","ams"], ["ו","וְ","Pc"], ["ישר","יָשָׁר","ams"], ["יהוה","יהוה","np"], ["על","עַל_2","Pp"], ["כן","כֵּן_2","Pd"], ["יורה","ירה_3","vhi3ms"], ["חט ]א#ים","חַטָּא","amp"], ["[ ב","בְּ","Pp+Pa"], ["דרך","דֶּרֶךְ","ncbsa"], ["׃","",""]] },
+            { reference: "Ps 25:9", frag: "f2:1", words: [["ידרך","דרך","vhi3ms"], ["ענוים","עָנָו","amp"], ["ב","בְּ","Pp+Pa"], ["משפט","מִשְׁפָּט","ncms"], ["ו","וְ","Pc"], ["ילמד","למד","vpi3ms"], ["ענוים ]","עָנָו","amp"], ["[ דרכ׳ו","דֶּרֶךְ","ncbscX3ms"], ["׃","",""]] },
+            { reference: "Ps 25:10", frag: "f2:2", words: [["כל","כֹּל","ncmsc"], ["ארחות","אֹרַח","ncbpc"], ["יהוה","יהוה","np"], ["חסד","חֶסֶד_2","ncms"], ["ו","וְ","Pc"], ["אמת","אֱמֶת","ncfs"], ["ל","לְ","Pp"], ["נצרי","נצר","vqPmpc"], ["בר ]ית׳ו","בְּרִית","ncfscX3ms"], ["ו","וְ","Pc"], ["עד##[ תי׳ו","עֵדָה_1","ncfpcX3ms"], ["׃","",""]] },
+            { reference: "Ps 25:11", frag: "f2:2", words: [["למען","לְמַעַן","Pp"], ["שמ׳ך","שֵׁם_1","ncmscX2ms"], ["יהוה","יהוה","np"], ["ו","וְ","Pc"], ["סלחת ]","סלח","vqp2ms"], ["[ ל","לְ","Pp"], ["עונ׳י","עָוֹן","ncbscX1cs"], ["כי","כִּי_2","Pc"], ["רב","רַב_1","ams"], ["הוא","הוּא","pi3ms"], ["׃","",""]] },
+            { reference: "Ps 25:12", frag: "f2:3", words: [["מי","מִי","pii"], ["זה","זֶה","ams"], ["ה","הַ","Pa"], ["איש","אִישׁ","ncms"], ["ירא","יָרֵא","amsc"], ["יהוה","יהוה","np"], ["יור ]׳נ#?ו?","ירה_3","vhi3msX3ms"], ["ב","בְּ","Pp"], ["ד[ רך","דֶּרֶךְ","ncbsa"], ["יבחר ]","בחר_2","vqi3ms"], ["׃","",""]] },
+            { reference: "Ps 25:15", frag: "f3:1", words: [["ε"," # ","0"], [" ]ע##ינ׳י","עַיִן","ncbdcX1cs"], ["תמיד#[ ","תָּמִיד","Pd"], ["אל","אֶל","Pp"], ["יהוה","יהוה","np"], ["כי","כִּי_2","Pc"], ["הוא","הוּא","pi3ms"], ["יוציא","יצא","vhi3ms"], ["מ","מִן","Pp"], ["רשת","רֶשֶׁת","ncfs"], ["רגל׳י ]","רֶגֶל","ncfdcX1cs"], ["׃","",""]] },
+            { reference: "Ps 31:23", frag: "f4i:3", words: [["[ ו","וְ","Pc"], ["אני","אֲנִי","pi1cs"], ["אמרתי","אמר_1","vqp1cs"], ["ב","בְּ","Pp"], ["חפז׳י","חפז","vqcX1cs"], ["נגרזתי","גרז","vnp1cs"], ["מ","מִן","Pp"], ["נגד","נֶגֶד","Pp"], ["עיני׳כ ]ה","עַיִן","ncbdcX2ms"], ["[ אכן","אָכֵן_1","Pd"], ["שמעת","שׁמע","vqp2ms"], ["קול","קֹול","ncmsc"], ["תחנונ׳י","תַּחֲנוּן","ncmpcX1cs"], ["ב","בְּ","Pp"], ["שוע׳י","שׁוע","vpcX1cs"], ["אלי׳ך","אֶל","PpX2ms"], ["׃","",""]] },
+            { reference: "Ps 31:24", frag: "f4i:4", words: [["אהבו","אהב","vqvmp"], ["את","אֵת_1","Po"], ["יהוה","יהוה","np"], ["כול","כֹּל","ncmsc"], ["חסידי ]׳ו#?","חָסִיד","ampcX3ms"], ["אמנ?ם[ ","אֻמְנָם","Pc"], ["נ ]ו#?צר","נצר","vqPms"], ["[ יהוה","יהוה","np"], ["ו","וְ","Pc"], ["משלם","שׁלם","vpPms"], ["על","עַל_2","Pp"], ["יתר","יֶתֶר_1","ncms"], ["עשה","עשׂה_1","vqPms"], ["גאוה","גַּאֲוָה","ncfs"], ["׃","",""]] },
+            { reference: "Ps 31:25", frag: "f4i:5", words: [["חזקו","חזק","vqvmp"], ["ו","וְ","Pc"], ["יאמץ","אמץ","vhi3ms"], ["לבב׳כם","לֵבָב","ncmscX2mp"], ["כול","כֹּל","ncmsc"], ["ה","הַ","Pa"], ["מיחלים","יחל","vpPmp"], ["ל","לְ","Pp"], ["יהוה","יהוה","np"], ["׃","",""]] },
+            { reference: "Ps 33:1", frag: "f4i:6", words: [["[ רננו","רנן","vpvmp"], ["צדיקים","צַדִּיק","amp"], ["ב","בְּ","Pp"], ["יהוה","יהוה","np"], ["ל","לְ","Pp+Pa"], ["ישרים","יָשָׁר","amp"], ["נאוה","נָאוֶה","afs"], ["תהלה","תְּהִלָּה","ncfs"], ["׃","",""]] },
+            { reference: "Ps 33:2", frag: "f4i:6", words: [["הודו","ידה_2","vhvmp"], ["ל","לְ","Pp"], ["יהוה","יהוה","np"], ["ב","בְּ","Pp"], ["כנור","כִּנֹּור","ncms"], ["ב","בְּ","Pp"], ["נבל","נֵבֶל_2","ncmsc"], [" ]עשו?ר#","עָשֹׂור","ncms"], ["זמרו","זמר_1","vpvmp"], ["ל׳ו","לְ","PpX3ms"], ["׃","",""]] },
+            { reference: "Ps 33:3", frag: "f4i:7", words: [["[ שירו","שׁיר","vqvmp"], ["ל׳ו","לְ","PpX3ms"], ["שיר","שִׁיר","ncms"], ["חדש","חָדָשׁ","ams"], ["היטיבו","יטב","vhvmp"], ["נגן","נגן","vpc"], ["ב","בְּ","Pp"], ["תרועה","תְּרוּעָה","ncfs"], ["׃","",""]] },
+            { reference: "Ps 33:4", frag: "f4i:7", words: [["כי","כִּי_2","Pc"], ["ישר","יָשָׁר","ams"], ["דבר","דָּבָר","ncmsc"], ["יהוה","יהוה","np"], ["ו","וְ","Pc"], ["כול","כֹּל","ncmsc"], ["מעש׳הו","מַעֲשֶׂה","ncmscX3ms"], [" ]ב##","בְּ","Pp"], ["אמ#ונה#","אֱמוּנָה","ncfs"], ["׃","",""]] },
+            { reference: "Ps 33:5", frag: "f4i:7", words: [["אהב","אהב","vqPms"], ["[ צדקה","צְדָקָה","ncfs"], ["ו","וְ","Pc"], ["משפט","מִשְׁפָּט","ncms"], ["חסד","חֶסֶד_2","ncmsc"], ["יהוה","יהוה","np"], ["מלאה","מלא","vqp3fs"], ["ה","הַ","Pa"], ["ארץ","אֶרֶץ","ncfs"], ["׃","",""]] },
+            { reference: "Ps 33:6", frag: "f4i:8", words: [["ב","בְּ","Pp"], ["דבר","דָּבָר","ncmsc"], ["יהוה","יהוה","np"], ["שמים","שָׁמַיִם","ncmp"], ["נעשו","עשׂה_1","vnp3cp"], ["ו","וְ","Pc"], ["ב","בְּ","Pp"], ["רוח","רוּחַ","ncfsc"], ["פי ]׳ו#?","פֶּה","ncmscX3ms"], ["כ#ול","כֹּל","ncmsc"], ["צבא׳ם","צָבָא","ncbscX3mp"], ["׃","",""]] },
+            { reference: "Ps 33:7", frag: "f4i:9", words: [["[ כונס","כנס","vqPms"], ["כ","כְּ","Pp+Pa"], ["נד","נֵד","ncms"], ["מי","מַיִם","ncmpc"], ["ה","הַ","Pa"], ["ים","יָם","ncms"], ["נותן","נתן","vqPms"], ["ב","בְּ","Pp"], ["אוצרות","אֹוצָר","ncmp"], ["תהומות","תְּהֹום","ncbp"], ["שם","שָׁם","Pd"], ["ה","הַ","Pa"], ["מים","מַיִם","ncmp"], ["נצבו","נצב_1","vnp3cp"], ["כמו","כְּמֹו","Pp"], ["נד","נֵד","ncms"], ["׃","",""]] },
+            { reference: "Ps 33:8", frag: "f4i:9", words: [["יירא ]ו#?","ירא_1","vqi3mp"], ["מ","מִן","Pp"], ["יהוה","יהוה","np"], ["כ#ו#?ל","כֹּל","ncmsc"], ["[ ה","הַ","Pa"], ["ארץ","אֶרֶץ","ncfs"], ["ממ׳נו","מִן","PpX3ms"], ["יגורו","גור_3","vqi3mp"], ["כל","כֹּל","ncmsc"], ["ישבי","ישׁב","vqPmpc"], ["תבל","תֵּבֵל","ncfs"], ["׃","",""]] },
+            { reference: "Ps 33:9", frag: "f4i:10", words: [["כי","כִּי_2","Pc"], ["הוא","הוּא","pi3ms"], ["אמר","אמר_1","vqp3ms"], ["ו","וְ","Pc"], ["יהי","היה","vqw3msj"], ["הוא","הוּא","pi3ms"], ["צוה","צוה","vpp3ms"], ["ו","וְ","Pc"], ["יעמד","עמד","vqw3ms"], ["׃","",""]] },
+            { reference: "Ps 33:10", frag: "f4i:10", words: [["יהוה","יהוה","np"], ["הפיר","פור","vhp3ms"], [" ]ע##צת","עֵצָה_1","ncfsc"], ["ג?ו?י?ם","גֹּוי","ncmp"], ["[ הניא","נוא","vhp3ms"], ["מחשבות","מַחֲשָׁבָה","ncfpc"], ["עמים","עַם","ncmp"], ["׃","",""]] },
+            { reference: "Ps 33:11", frag: "f4i:11", words: [["עצת","עֵצָה_1","ncfsc"], ["יהוה","יהוה","np"], ["ל","לְ","Pp"], ["עולם","עֹולָם","ncms"], ["תעמד","עמד","vqi3fs"], ["מחשבות","מַחֲשָׁבָה","ncfpc"], ["לב׳ו","לֵב","ncmscX3ms"], ["ל","לְ","Pp"], ["דר","דֹּור_2","ncms"], ["ו","וְ","Pc"], ["דר","דֹּור_2","ncms"], ["׃","",""]] },
+            { reference: "Ps 33:12", frag: "f4i:11", words: [["אשרי","אַשְׁרֵי","Pi"], [" ]ה##","הַ","Pa"], ["גו?[ י","גֹּוי","ncms"], ["אשר ]","אֲשֶׁר","Pr"], ["׃","",""]] },
+            { reference: "Ps 34:21", frag: "f5:1", words: [["[ שמר","שׁמר","vqPms"], ["כל","כֹּל","ncms"], ["עצמותי׳ו","עֶצֶם_1","ncfpcX3ms"], ["אחת","אֶחָד","ucfsa"], ["מ׳הנה","מִן","PpX3fp"], ["לא","לֹא","Pn"], ["נשב ]ר##","שׁבר_1","vnPms"], ["׃","",""]] },
+            { reference: "Ps 34:22", frag: "f5:1", words: [["תמו#?[ תת","מות","vei3fs"], ["רשע","רָשָׁע","ams"], ["רעה","רָעָה","ncfs"], ["ו","וְ","Pc"], ["שנאי ]","שׂנא","vqPmpc"], ["[ צדיק","צַדִּיק","ams"], ["יאשמו","אשׁם","vqi3mp"], ["׃","",""]] },
+            { reference: "Ps 35:1", frag: "f5:3", words: [["[ ל","לְ","Pp"], ["דוד","דָּוִד","np"], ["ריב׳ה","ריב","vqvmsXh"], ["יהוה","יהוה","np"], ["את","אֵת_2","Pp"], ["יריב׳י","יָרִיב_1","ncmpcX1cs"], ["לחם","לחם_1","vqvms"], ["את","אֵת_2","Pp"], ["לחמ׳י","לחם_1","vqPmpcX1cs"], ["׃","",""]] },
+            { reference: "Ps 35:2", frag: "f5:3", words: [[" ]ה##חזק","חזק","vhvms"], ["מג#?[ ן","מָגֵן_1","ncbsa"], ["ו","וְ","Pc"], ["צנה","צִנָּה_2","ncfs"], ["ו","וְ","Pc"], ["קומ׳ה","קום","vqvmsXh"], ["ב","בְּ","Pp"], ["עזרת׳י ]","עֶזְרָה_1","ncfscX1cs"], ["׃","",""]] },
+            { reference: "Ps 35:13", frag: "f6:1", words: [["[ ב","בְּ","Pp"], ["חלות׳ם","חלה","vqcX3mp"], ["לבוש׳י","לְבוּשׁ","ncmscX1cs"], ["שק","שַׂק","ncms"], ["עניתי","ענה_2","vpp1cs"], ["ב ]","בְּ","Pp+Pa"], ["צ##ו(# ם #)","צֹום","ncms"], ["נ#?[ פש׳י","נֶפֶשׁ","ncbscX1cs"], ["ו","וְ","Pc"], ["תפלת׳י","תְּפִלָּה","ncfscX1cs"], ["על","עַל_2","Pp"], ["חיק׳י","חֵיק","ncmscX1cs"], ["תשוב","שׁוב","vqi3fs"], ["׃","",""]] },
+            { reference: "Ps 35:14", frag: "f6:1", words: [["כ","כְּ","Pp"], ["רע","רֵעַ_2","ncms"], ["כ","כְּ","Pp"], ["אח","אָח_2","ncms"], ["ל׳י","לְ","PpX1cs"], ["התהלכתי","הלך","vtp1cs"], ["כ","כְּ","Pp"], ["אבל","אָבֵל_1","amsc"], ["אם ]","אֵם","ncfs"], ["קדר","קדר","vqPms"], ["שחותי","שׁחח","vqp1cs"], ["׃","",""]] },
+            { reference: "Ps 35:15", frag: "f6:2", words: [["ו","וְ","Pc"], ["ב","בְּ","Pp"], ["צלע׳י","צֶלַע","ncmscX1cs"], ["שמחו","שׂמח","vqp3cp"], ["נ(# אס##פ #)ו?","אסף","vnp3cp"], [" # [ "," #  #  # ","0"], ["ε"," # ","0"], ["ו","וְ","Pc"], ["לא","לֹא","Pn"], ["ידעתי","ידע","vqp1cs"], ["קרעו","קרע","vqp3cp"], ["ו","וְ","Pc"], ["לא","לֹא","Pn"], ["דמו","דמם_1","vqp3cp"], ["׃","",""]] },
+            { reference: "Ps 35:16", frag: "f6:2", words: [["ב","בְּ","Pp"], ["חנפי","חָנֵף","ampc"], ["לעגי ]","לָעֵג","ampc"], ["מעוג","מָעֹוג","ncms"], ["חרקו","חרק","vqp3cp"], ["על׳י","עַל_2","PpX1cs"], ["שני׳ם","שֵׁן_1","ncbdcX3mp"], ["׃","",""]] },
+            { reference: "Ps 35:17", frag: "f6:3", words: [["א#דו?ני","אֲדֹנָי","np"], ["כ","כְּ","Pp"], ["מה##[ ","מָה","pii"], ["תראה","ראה","vqi2ms"], ["השיב׳ה","שׁוב","vhvmsXh"], ["נפש׳י","נֶפֶשׁ","ncbscX1cs"], ["מ","מִן","Pp"], ["שאי׳הם","שֹׁוא","ncfpcX3mp"], ["מ","מִן","Pp"], ["כפירים","כְּפִיר","ncmp"], ["יחידת׳י","יָחִיד","afscX1cs"], ["׃","",""]] },
+            { reference: "Ps 35:18", frag: "f6:3", words: [["אוד׳ך ]","ידה_2","vhi1csX2ms"], ["ב","בְּ","Pp"], ["קה##ל##[ ","קָהָל","ncms"], [" ]ר#ב","רַב_1","ams"], ["ב","בְּ","Pp"], ["עם","עַם","ncmsa"], ["עצום","עָצוּם","ams"], ["א[ הלל׳כ ]ה##[ ","הלל_2","vpi1csX2ms"], ["׃","",""]] },
+            { reference: "Ps 35:19", frag: "f6:4", words: [["אל","אַל","Pd"], ["ישמחו","שׂמח","vqi3mp"], ["ל׳י","לְ","PpX1cs"], ["איב׳י","אֹיֵב","ncmpcX1cs"], ["שקר","שֶׁקֶר","ncms"], ["שנא׳י","שׂנא","vqPmpcX1cs"], ["חנם","חִנָּם","Pd"], ["יקרצו","קרץ","vqi3mp"], ["עין","עַיִן","ncbsa"], ["׃","",""]] },
+            { reference: "Ps 35:20", frag: "f6:4", words: [["כי","כִּי_2","Pc"], ["לא","לֹא","Pn"], ["שלום ]","שָׁלֹום","ncms"], ["[ ידבר ]ו#?","דבר_2","vpi3mp"], ["ו#?","וְ","Pc"], ["א#ל","אֶל","Pp"], ["ר#[ גע ]י#?","רָגֵעַ","ampc"], ["ארץ#[ ","אֶרֶץ","ncfs"], ["דברי","דָּבָר","ncmpc"], ["מרמות","מִרְמָה_1","ncfp"], ["יחשבו׳ן","חשׁב","vqi3mpXn"], ["׃","",""], ["ε"," # ","0"]] },
+            { reference: "Ps 35:26", frag: "f4ii:1", words: [["שמ#חי","שָׂמֵחַ","ampc"], ["רע#ת##׳[ י","רָעָה","ncfscX1cs"], ["ילבשו","לבשׁ","vqi3mp"], ["בשת","בֹּשֶׁת","ncfs"], ["ו","וְ","Pc"], ["כלמה","כְּלִמָּה","ncfs"], ["ה","הַ","Pa"], ["מגדילים","גדל","vhPmp"], ["על׳י","עַל_2","PpX1cs"], ["׃","",""]] },
+            { reference: "Ps 35:27", frag: "f4ii:1", words: [["ירנו","רנן","vqi3mp"], ["ו","וְ","Pc"], ["ישמחו","שׂמח","vqi3mp"], ["חפצי","חָפֵץ","ampc"], ["צדק׳י","צֶדֶק","ncmscX1cs"], ["ו","וְ","Pc"], ["יאמרו","אמר_1","vqi3mp"], ["תמיד","תָּמִיד","Pd"], ["יגדל","גדל","vqi3ms"], ["יהוה ]","יהוה","np"], ["ח##פ##צי","חָפֵץ","ampc"], ["שלו#?ם##[ ","שָׁלֹום","ncmsc"], ["עבד׳ו","עֶבֶד_1","ncmscX3ms"], ["׃","",""]] },
+            { reference: "Ps 35:28", frag: "f4ii:2", words: [["ו","וְ","Pc"], ["לשונ׳י","לָשֹׁון","ncbscX1cs"], ["תהגה","הגה_1","vqi3fs"], ["צדק׳ך","צֶדֶק","ncmscX2ms"], ["כל","כֹּל","ncmsc"], ["ה","הַ","Pa"], ["יום","יֹום_1","ncms"], ["תהלת׳ך","תְּהִלָּה","ncfscX2ms"], ["׃","",""]] },
+            { reference: "Ps 36:1", frag: "f4ii:3", words: [["[ ל ]","לְ","Pp+Pa"], ["מ##נ(# צ##ח #)","נצח","vpPms"], ["ל","לְ","Pp"], ["עבד#","עֶבֶד_1","ncmsc"], ["יהוה#","יהוה","np"], ["ל","לְ","Pp"], ["דויד##[ ","דָּוִד","np"], ["׃","",""]] },
+            { reference: "Ps 36:2", frag: "f4ii:3", words: [["נאם","נְאֻם","ncmsc"], ["פשע","פֶּשַׁע","ncms"], ["ל","לְ","Pp+Pa"], ["רשע","רָשָׁע","ams"], ["ב","בְּ","Pp"], ["קרב","קֶרֶב","ncmsc"], ["לב׳י","לֵב","ncmscX1cs"], ["אין","אַיִן_1","Pd"], ["פחד","פַּחַד_1","ncmsc"], ["אלהים","אֱלֹהִים","ncmp"], ["ל","לְ","Pp"], ["נגד","נֶגֶד","Pp"], ["עיני׳ו","עַיִן","ncbdcX3ms"], ["׃","",""]] },
+            { reference: "Ps 36:3", frag: "f4ii:3", words: [["כי","כִּי_2","Pc"], ["החליק ]","חלק_1","vhp3ms"], ["א##לי?׳ו","אֶל","PpX3ms"], ["ב","בְּ","Pp"], ["ע#יני׳ו","עַיִן","ncbdcX3ms"], ["ל","לְ","Pp"], ["מצ#וא#","מצא","vqc"], ["עונ׳ו","עָוֹן","ncbscX3ms"], ["[ ל","לְ","Pp"], ["שנא","שׂנא","vqc"], ["׃","",""]] },
+            { reference: "Ps 36:4", frag: "f4ii:4", words: [["דברי","דָּבָר","ncmpc"], ["פי׳ו","פֶּה","ncmscX3ms"], ["און","אָוֶן","ncms"], ["ו","וְ","Pc"], ["מרמה","מִרְמָה_1","ncfs"], ["חדל","חדל_1","vqp3ms"], ["ל","לְ","Pp"], ["השכיל","שׂכל_1","vhc"], ["ל","לְ","Pp"], ["היטיב","יטב","vhc"], ["׃","",""]] },
+            { reference: "Ps 36:5", frag: "f4ii:4", words: [["און","אָוֶן","ncms"], ["יחשב","חשׁב","vqi3ms"], ["על ]","עַל_2","Pp"], ["מ#ש#כב׳ו","מִשְׁכָּב","ncmscX3ms"], ["יתיעץ","יעץ","vti3ms"], ["כול#","כֹּל","ncmsc"], ["ד#רך","דֶּרֶךְ","ncbsa"], ["ל##[ וא","לֹא","Pn"], ["טוב","טֹוב_1","ams"], ["רע","רַע","ams"], ["לוא","לֹא","Pn"], ["ימאס","מאס_1","vqi3ms"], ["׃","",""]] },
+            { reference: "Ps 36:6", frag: "f4ii:6", words: [["יהוה","יהוה","np"], ["מ","מִן","Pp"], ["ה","הַ","Pa"], ["שמים","שָׁמַיִם","ncmp"], ["ח##ס##ד##׳[ כה","חֶסֶד_2","ncmscX2ms"], ["אמונת׳ך","אֱמוּנָה","ncfscX2ms"], ["עד","עַד_3","Pp"], ["שחקים","שַׁחַק","ncmp"], ["׃","",""]] },
+            { reference: "Ps 36:7", frag: "f4ii:6", words: [["צדקת׳ך","צְדָקָה","ncfscX2ms"], ["כ","כְּ","Pp"], ["הררי","הַר","ncmpc"], ["אל","אֵל_5","ncms"], ["משפט׳ך","מִשְׁפָּט","ncmpcX2ms"], ["תהום","תְּהֹום","ncbsa"], ["רבה","רַב_1","afs"], ["אדם","אָדָם_1","ncms"], ["ו","וְ","Pc"], ["בהמה ]","בְּהֵמָה","ncfs"], ["ב׳ה","בְּ","PpX3fs"], ["תושיע##[ ","ישׁע","vhi2ms"], ["יהוה","יהוה","np"], ["׃","",""]] },
+            { reference: "Ps 36:8", frag: "f4ii:7", words: [["מה","מָה","pii"], ["יקר","יָקָר","ams"], ["חסד׳ך","חֶסֶד_2","ncmscX2ms"], ["אלהים","אֱלֹהִים","ncmp"], ["ו","וְ","Pc"], ["בני","בֵּן_1","ncmpc"], ["אדם","אָדָם_1","ncms"], ["ב","בְּ","Pp"], ["צל","צֵל","ncmsc"], ["כנפי׳ך","כָּנָף","ncfdcX2ms"], ["יחסיו׳ן","חסה","vqi3mpXn"], ["׃","",""]] },
+            { reference: "Ps 36:9", frag: "f4ii:7", words: [["ירוי׳ן","רוה","vqi3mpXn"], ["מ","מִן","Pp"], ["דשן","דֶּשֶׁן","ncmsc"], ["בית׳ך ]","בַּיִת_1","ncmscX2ms"], ["ו#?","וְ","Pc"], ["נחל","נַחַל_1","ncmsc"], ["[ עדני׳כה","עֵדֶן_1","ncmpcX2ms"], ["תשק׳ם","שׁקה","vhi2msX3mp"], ["ε"," # ","0"], ["׃","",""]] },
+            { reference: "Ps 38:2", frag: "f7_8:1", words: [["[ יהוה","יהוה","np"], ["אל","אַל","Pd"], ["ב","בְּ","Pp"], ["קצפ׳ך","קֶצֶף_1","ncmscX2ms"], ["תוכיח׳ני","יכח","vhi2msX1cs"], ["ו","וְ","Pc"], ["ב","בְּ","Pp"], ["ח ]מ#ת׳כה#","חֵמָה","ncfscX2ms"], ["ת##[ יסר׳ני","יסר_1","vpi2msX1cs"], ["׃","",""]] },
+            { reference: "Ps 38:3", frag: "f7_8:1", words: [["כי","כִּי_2","Pc"], ["חצי׳ך","חֵץ","ncmpcX2ms"], ["נחתו","נחת","vnp3cp"], ["ב׳י","בְּ","PpX1cs"], ["ו","וְ","Pc"], ["תנחת ]","נחת","vqw3fs"], ["[ על׳י","עַל_2","PpX1cs"], ["יד׳ך","יָד","ncfscX2ms"], ["׃","",""]] },
+            { reference: "Ps 38:4", frag: "f7_8:2", words: [["אין","אַיִן_1","Pd"], ["מתם","מְתֹם","ncms"], ["ב","בְּ","Pp"], ["בשר׳י","בָּשָׂר","ncmscX1cs"], ["מ ]","מִן","Pp"], ["פ#ני","פָּנֶה","ncbpc"], ["ז?עמ׳כה","זַעַם","ncmscX2ms"], [" # [ ין","אַיִן_1","Pd"], ["ש ]לו?ם#","שָׁלֹום","ncms"], ["ב","בְּ","Pp"], ["עצמ׳י","עֶצֶם_1","ncfpcX1cs"], ["מ#","מִן","Pp"], ["[ פני","פָּנֶה","ncbpc"], ["חטאת׳י","חַטָּאת","ncfscX1cs"], ["׃","",""]] },
+            { reference: "Ps 38:5", frag: "f7_8:2", words: [["כי","כִּי_2","Pc"], ["עונת׳י ]","עָוֹן","ncbpcX1cs"], ["[ עברו","עבר_1","vqp3cp"], ["ראש׳י","רֹאשׁ_1","ncmscX1cs"], ["כ","כְּ","Pp"], ["משא","מַשָּׂא_1","ncms"], ["כבד","כָּבֵד_1","ams"], ["יכבדו","כבד","vqi3mp"], ["ממ׳ני","מִן","PpX1cs"], ["׃","",""]] },
+            { reference: "Ps 38:6", frag: "f7_8:3", words: [["הבאי ]ש##ו#?","באשׁ","vhp3cp"], ["ו#?","וְ","Pc"], ["נ?מקו","מקק","vnp3cp"], ["ח##[ בורו ]ת׳י","חַבּוּרָה","ncfpcX1cs"], ["מ","מִן","Pp"], ["פני","פָּנֶה","ncbpc"], ["אולת#׳[ י","אִוֶּלֶת","ncfscX1cs"], ["׃","",""]] },
+            { reference: "Ps 38:7", frag: "f7_8:3", words: [["נעויתי ]","עוה","vnp1cs"], ["[ שחתי","שׁחח","vqp1cs"], ["עד","עַד_3","Pp"], ["מאד","מְאֹד","Pd"], ["כל","כֹּל","ncmsc"], ["ה","הַ","Pa"], ["יום","יֹום_1","ncms"], ["קדר","קדר","vqPms"], ["הלכתי","הלך","vpp1cs"], ["׃","",""]] },
+            { reference: "Ps 38:8", frag: "f7_8:4", words: [["ε"," # ","0"], [" ] # [ "," #  #  # ","0"], ["ε"," # ","0"], ["ו","וְ","Pc"], ["אין","אַיִן_1","Pd"], [" ]מ##ת#ם","מְתֹם","ncms"], ["ב#","בְּ","Pp"], ["ב#ש#ר#׳י","בָּשָׂר","ncmscX1cs"], ["׃","",""]] },
+            { reference: "Ps 38:9", frag: "f7_8:4", words: [["נפ#ג?א # [ ","פוג","vnp1cs"], ["ו","וְ","Pc"], ["נדכיתי ]","דכה","vnp1cs"], ["[ עד","עַד_3","Pp"], ["מאד","מְאֹד","Pd"], ["שאגתי","שׁאג","vqp1cs"], ["מ","מִן","Pp"], ["נהמת","נְהָמָה","ncfsc"], ["לב׳י","לֵב","ncmscX1cs"], ["׃","",""]] },
+            { reference: "Ps 38:10", frag: "f7_8:5", words: [["אדני","אֲדֹנָי","np"], ["נגד׳ך","נֶגֶד","PpX2ms"], ["כל","כֹּל","ncmsc"], ["תאות׳י","תַּאֲוָה","ncfscX1cs"], ["ו","וְ","Pc"], ["אנחת׳י","אֲנָחָה","ncfscX1cs"], [" ]ממ׳כה","מִן","PpX2ms"], ["לוא#","לֹא","Pn"], ["נסתר","סתר","vnPms"], ["׃","",""]] },
+            { reference: "Ps 38:11", frag: "f7_8:5", words: [["[ לב׳י ]","לֵב","ncmscX1cs"], ["[ סחרחר","סחר","vbp3ms"], ["עזב׳ני","עזב_1","vqp3msX1cs"], ["כח׳י","כֹּחַ_1","ncmscX1cs"], ["ו","וְ","Pc"], ["אור","אֹור","ncbsc"], ["עינ׳י","עַיִן","ncbdcX1cs"], ["גם","גַּם","Pc"], ["הם","הֵם","pi3mp"], ["אין","אַיִן_1","Pd"], ["את׳י","אֵת_2","PpX1cs"], ["׃","",""]] },
+            { reference: "Ps 38:12", frag: "f7_8:6", words: [["ε"," # ","0"], ["מ","מִן","Pp"], ["נ ]גד","נֶגֶד","Pp"], ["ר#ע׳י","רֵעַ_2","ncmpcX1cs"], ["ו","וְ","Pc"], ["מיוד##[ ע׳י","ידע","vPPmpcX1cs"], ["ε"," # ","0"], ["׃","",""]] },
+            { reference: "4Q83 f9i:1", frag: "f9i:1", words: [["ε"," # ","0"], [" ] # "," #  #  # ","0"]] },
+            { reference: "4Q83 f9i:2", frag: "f9i:2", words: [["ε"," # ","0"], [" ]נ#?ו#?"," #  #  # ","0"]] },
+            { reference: "4Q83 f9i:3", frag: "f9i:3", words: [["ε"," # ","0"], [" ]ד##"," #  # ד","0"], ["׃","",""]] },
+            { reference: "Ps 38:15", frag: "f9ii:1", words: [["ε"," # ","0"], [" ] # [ "," #  #  # ","0"], ["ε"," # ","0"], ["׃","",""]] },
+            { reference: "Ps 38:16", frag: "f9ii:1", words: [["כי","כִּי_2","Pc"], ["ל׳ך","לְ","PpX2ms"], ["יהוה","יהוה","np"], ["הוחלתי ]","יחל","vhp1cs"], ["אדני","אֲדֹנָי","np"], ["אתה","אַתָּה","pi2ms"], ["תענ׳ני","ענה_1","vqi2msX1cs"], ["כי","כִּי_2","Pc"], ["אלה#׳י?","אֱלֹהִים","ncmpcX1cs"], ["׃","",""]] },
+            { reference: "Ps 38:17", frag: "f9ii:2", words: [["[ אמרתי","אמר_1","vqp1cs"], ["פן","פֶּן","Pc"], ["ישמחו","שׂמח","vqi3mp"], ["ל׳י","לְ","PpX1cs"], ["ב","בְּ","Pp"], ["מוט","מוט","vqc"], ["רגל׳י","רֶגֶל","ncfscX1cs"], ["על׳י","עַל_2","PpX1cs"], [" ]יג?דילו","גדל","vhi3mp"], ["׃","",""]] },
+            { reference: "Ps 38:18", frag: "f9ii:2", words: [["כי","כִּי_2","Pc"], ["אני","אֲנִי","pi1cs"], ["ל","לְ","Pp"], ["צ##[ לע","צֶלַע","ncms"], ["נכון ]","כון","vnPms"], ["ו","וְ","Pc"], ["מכאב׳י","מַכְאֹב","ncmscX1cs"], ["נגד׳י","נֶגֶד","PpX1cs"], ["תמיד","תָּמִיד","Pd"], ["׃","",""]] },
+            { reference: "Ps 38:19", frag: "f9ii:3", words: [["כה","כֹּה","Pd"], ["ע#ונת׳י","עָוֹן","ncbpcX1cs"], ["[ אגיד ]","נגד","vhi1cs"], ["אדאג","דאג","vqi1cs"], ["מן","מִן","Pp"], ["ח##ט#אות׳י","חַטָּאת","ncfpcX1cs"], ["׃","",""]] },
+            { reference: "Ps 38:20", frag: "f9ii:3", words: [["ו","וְ","Pc"], ["איב׳י","אֹיֵב","ncmpcX1cs"], ["ח##נם","חִנָּם","Pd"], ["ע##צמ#ו","עצם_1","vqp3cp"], ["ו#?","וְ","Pc"], ["ר##[ בו","רבב_1","vqp3cp"], ["שנא׳י ]","שׂנא","vqPmpcX1cs"], ["שק#ר׳י","שֶׁקֶר","ncmscX1cs"], ["׃","",""]] },
+            { reference: "Ps 38:21", frag: "f9ii:4", words: [["משלימי","שׁלם","vhPmpc"], ["ר#ע##ה#","רָעָה","ncfs"], ["תחת","תַּחַת_1","ncms"], ["טו?בה","טֹובָה","ncfs"], ["י#?שס׳ני","שׁסס","vqi3mpX1cs"], ["תחת","תַּחַת_1","ncms"], ["דבר","דָּבָר","ncms"], ["טוב","טֹוב_1","ams"], ["׃","",""]] },
+            { reference: "Ps 38:22", frag: "f9ii:4", words: [["אל","אַל","Pd"], ["תעז?וב׳ני","עזב_1","vqi2msX1cs"], ["אלה##[ ׳י","אֱלֹהִים","ncmpcX1cs"], ["אל","אַל","Pd"], ["תרחק ]","רחק","vqi2ms"], ["[ מ ]מ##׳נ?י","מִן","PpX1cs"], ["׃","",""]] },
+            { reference: "Ps 38:23", frag: "f9ii:5", words: [["חיש׳ה","חושׁ_1","vqvmsXh"], ["ל׳י","לְ","PpX1cs"], ["ל","לְ","Pp"], ["עזרת׳י","עֶזְרָה_1","ncfscX1cs"], ["אדני","אֲדֹנָי","np"], ["תשוע#ת׳י","תְּשׁוּעָה","ncfscX1cs"], ["׃","",""]] },
+            { reference: "Ps 71:1", frag: "f9ii:5", words: [["ב׳כה","בְּ","PpX2ms"], ["יהוה","יהוה","np"], ["חסיתי","חסה","vqp1cs"], ["אל","אַל","Pd"], ["א#בושה","בושׁ_1","vqi1csh"], ["ל","לְ","Pp"], ["עו#?[ לם","עֹולָם","ncms"], ["׃","",""]] },
+            { reference: "Ps 71:2", frag: "f9ii:5", words: [["ב","בְּ","Pp"], ["צדקת׳כה ]","צְדָקָה","ncfscX2ms"], ["הציל׳ני","נצל","vhvmsX1cs"], ["תפלט׳ני","פלט","vpi2msX1cs"], ["הטה","נטה","vhvms"], ["אל׳י","אֶל","PpX1cs"], ["אוזנ׳כה","אֹזֶן","ncfscX2ms"], ["הציל׳ני","נצל","vhvmsX1cs"], ["׃","",""]] },
+            { reference: "Ps 71:3", frag: "f9ii:6", words: [["היה","היה","vqvms"], ["ל׳י","לְ","PpX1cs"], ["ל","לְ","Pp"], ["צור","צוּר_1","ncmsc"], ["מעו?ן","מָעֹון_2","ncms"], ["לב׳י","לֵב","ncmscX1cs"], ["עד#מ # [ ","עדמ # ","0"], ["ε"," # ","0"], ["כ##י#?","כִּי_2","Pc"], ["סלע׳י","סֶלַע","ncmscX1cs"], ["ו","וְ","Pc"], ["מצוד#ת#׳י","מְצוּדָה_2","ncfscX1cs"], ["אתה","אַתָּה","pi2ms"], ["׃","",""]] },
+            { reference: "Ps 71:4", frag: "f9ii:7", words: [["אלה׳י","אֱלֹהִים","ncmpcX1cs"], ["פלט׳ני","פלט","vpvmsX1cs"], ["מ","מִן","Pp"], ["יד","יָד","ncfsc"], ["רשע#","רָשָׁע","ams"], ["מ","מִן","Pp"], ["כף#","כַּף","ncfsc"], ["מעול","עול_1","vpPms"], ["ו#?","וְ","Pc"], ["חמו?ץ","חָמֹוץ","ncms"], ["׃","",""]] },
+            { reference: "Ps 71:5", frag: "f9ii:7", words: [["כ#י","כִּי_2","Pc"], ["א[ תה","אַתָּה","pi2ms"], ["תקות׳י","תִּקְוָה_2","ncfscX1cs"], ["אדני ]","אֲדֹנָי","np"], ["[ י ]ה##וה","יהוה","np"], ["מבטח׳י","מִבְטָח","ncmscX1cs"], ["מ","מִן","Pp"], ["נעור׳י","נְעוּרִים","ncmpcX1cs"], ["׃","",""]] },
+            { reference: "Ps 71:6", frag: "f9ii:8", words: [["עלי?׳כ##ה","עַל_2","PpX2ms"], ["נס#מכתי#?","סמך","vnp1cs"], ["מ##","מִן","Pp"], ["[ בטן","בֶּטֶן_1","ncfs"], [" ]מ","מִן","Pp"], ["מעי","מֵעֶה","ncmpc"], ["א#מ#׳י?","אֵם","ncfscX1cs"], ["את##ה##","אַתָּה","pi2ms"], ["עוז׳י","עֹז_2","ncmscX1cs"], ["ב׳כה##[ ","בְּ","PpX2ms"], ["תהלת׳י","תְּהִלָּה","ncfscX1cs"], ["תמיד ]","תָּמִיד","Pd"], ["׃","",""]] },
+            { reference: "Ps 71:7", frag: "f9ii:9", words: [["כ","כְּ","Pp"], ["מופת","מֹופֵת","ncms"], ["הייתי","היה","vqp1cs"], ["ל","לְ","Pp"], ["רבים","רַב_1","amp"], ["ו","וְ","Pc"], ["אתה","אַתָּה","pi2ms"], ["מחס׳י","מַחְסֶה","ncmscX1cs"], ["עוז","עֹז_1","ncms"], ["׃","",""]] },
+            { reference: "Ps 71:8", frag: "f9ii:9", words: [["ימלא##","מלא","vni3ms"], ["פ##׳י#?","פֶּה","ncmscX1cs"], ["תהלת׳כה","תְּהִלָּה","ncfscX2ms"], ["כול","כֹּל","ncmsc"], ["ה","הַ","Pa"], ["יום","יֹום_1","ncms"], ["ת[ פארת׳כה ]","תִּפְאֶרֶת","ncfscX2ms"], ["׃","",""]] },
+            { reference: "Ps 71:9", frag: "f9ii:10", words: [["אל","אַל","Pd"], ["תשליכ׳ני","שׁלך","vhi2msX1cs"], ["ל","לְ","Pp"], ["עת","עֵת","ncbsc"], ["זקנה","זִקְנָה","ncfs"], ["כ","כְּ","Pp"], ["כלות","כלה","vqc"], ["כוח#׳י","כֹּחַ_1","ncmscX1cs"], ["אל","אַל","Pd"], ["תעז?[ ב׳ני ]","עזב_1","vqi2msX1cs"], ["׃","",""]] },
+            { reference: "Ps 71:10", frag: "f9ii:10", words: [["כי#?","כִּי_2","Pc"], ["אמרו","אמר_1","vqp3cp"], ["א##יב#׳י","אֹיֵב","ncmpcX1cs"], ["ל##׳[ י","לְ","PpX1cs"], ["ו","וְ","Pc"], ["שמרי","שׁמר","vqPmpc"], ["נפש׳י","נֶפֶשׁ","ncbscX1cs"], ["נועצו ]","יעץ","vnp3cp"], ["י#?חדו#?","יַחְדָּו","Pd"], ["׃","",""]] },
+            { reference: "Ps 71:11", frag: "f9ii:11", words: [["ל","לְ","Pp"], ["אמור","אמר_1","vqc"], ["אלהים","אֱלֹהִים","ncmp"], ["עזב׳ו?","עזב_1","vqp3msX3ms"], ["ר#דפו","רדף","vqvmp"], ["תפ#[ שו׳הו","תפשׂ","vqvmpX3ms"], ["כי","כִּי_2","Pc"], ["אין","אַיִן_1","Pd"], ["מציל","נצל","vhPms"], ["׃","",""]] },
+            { reference: "Ps 71:12", frag: "f9ii:11", words: [["א ]ל#[ הי ]ם##[ ","אֱלֹהִים","ncmp"], ["אל","אַל","Pd"], ["תרחק","רחק","vqi2ms"], ["ממ׳ני","מִן","PpX1cs"], ["אלה׳י ]","אֱלֹהִים","ncmpcX1cs"], ["[ ל","לְ","Pp"], ["ע ]ז#?רת׳י","עֶזְרָה_1","ncfscX1cs"], ["חיש׳ה","חושׁ_1","vqvmsXh"], ["׃","",""]] },
+            { reference: "Ps 71:13", frag: "f9ii:12", words: [["יבושו","בושׁ_1","vqi3mp"], ["ו","וְ","Pc"], ["יכל[ ו","כלה","vqi3mp"], ["שטני","שׂטן","vqPmpc"], ["נפש׳י","נֶפֶשׁ","ncbscX1cs"], ["יעטו","עטה_1","vqi3mp"], ["חרפה","חֶרְפָּה","ncfs"], ["ו","וְ","Pc"], ["כלמה","כְּלִמָּה","ncfs"], ["מבקשי","בקשׁ","vpPmpc"], ["רעת׳י","רָעָה","ncfscX1cs"], ["׃","",""]] },
+            { reference: "Ps 71:14", frag: "f9ii:12", words: [["ו","וְ","Pc"], ["אני","אֲנִי","pi1cs"], ["תמיד ]","תָּמִיד","Pd"], ["[ אי ]ח##י?ל","יחל","vpi1cs"], ["ו#?","וְ","Pc"], ["הוספתי","יסף","vhp1cs"], ["על","עַל_2","Pp"], ["כול","כֹּל","ncmsc"], ["ת##[ הלת׳כה","תְּהִלָּה","ncfscX2ms"], ["ε"," # ","0"], ["׃","",""]] },
+            { reference: "Ps 47:2", frag: "f10:1", words: [["[ כל","כֹּל","ncmsc"], ["ה","הַ","Pa"], ["עמים","עַם","ncmp"], ["תקעו","תקע","vqvmp"], ["כף","כַּף","ncfs"], ["הריעו","רוע","vhvmp"], ["ל","לְ","Pp"], ["אלה ]ים","אֱלֹהִים","ncmp"], ["ב#","בְּ","Pp"], ["קול","קֹול","ncmsc"], ["[ רנה","רִנָּה_1","ncfs"], ["ε"," # ","0"], ["׃","",""]] },
+            { reference: "Ps 53:2", frag: "f11_12:1", words: [["[ אלהים","אֱלֹהִים","ncmp"], ["השחיתו","שׁחת","vhp3cp"], ["ו","וְ","Pc"], ["התעיבו","תעב","vhp3cp"], ["עול","עָוֶל","ncms"], ["אין","אַיִן_1","Pd"], [" ]ע##ו?ש#[ ה","עשׂה_1","vqPms"], ["טוב","טֹוב_1","ams"], ["׃","",""]] },
+            { reference: "Ps 53:3", frag: "f11_12:1", words: [["אלהים","אֱלֹהִים","ncmp"], ["מ","מִן","Pp"], ["שמים","שָׁמַיִם","ncmp"], ["השקיף","שׁקף","vhp3ms"], ["על","עַל_2","Pp"], ["בני","בֵּן_1","ncmpc"], ["אדם","אָדָם_1","ncms"], ["ל","לְ","Pp"], ["ראות ]","ראה","vqc"], ["[ ה","הֲ","Pg"], ["יש","יֵשׁ","Pd"], ["משכיל","שׂכל_1","vhPms"], ["דרש","דרשׁ","vqPms"], ["את","אֵת_1","Po"], ["אלהים","אֱלֹהִים","ncmp"], ["׃","",""]] },
+            { reference: "Ps 53:4", frag: "f11_12:2", words: [[" ]כול","כֹּל","ncms"], ["סג","סוג_1","vqp3ms"], ["יחד##[ ו","יַחְדָּו","Pd"], ["נאלחו","אלח","vnp3cp"], ["אין","אַיִן_1","Pd"], ["עשה","עשׂה_1","vqPms"], ["טוב","טֹוב_1","ams"], ["אין","אַיִן_1","Pd"], ["גם","גַּם","Pc"], ["אחד","אֶחָד","ucmsa"], ["׃","",""]] },
+            { reference: "Ps 53:5", frag: "f11_12:2", words: [["ה","הֲ","Pg"], ["לא ]","לֹא","Pn"], ["[ ידעו","ידע","vqp3cp"], ["פעלי","פעל","vqPmpc"], ["און","אָוֶן","ncms"], ["אכלי","אכל","vqPmpc"], ["עמ׳י","עַם","ncmscX1cs"], ["אכלו","אכל","vqp3cp"], [" ]ל##[ חם ]","לֶחֶם","ncms"], ["אלהים","אֱלֹהִים","ncmp"], ["ל##ו?א","לֹא","Pn"], ["קרא","קרא_1","vqp3ms"], ["׃","",""]] },
+            { reference: "Ps 53:6", frag: "f11_12:4", words: [["[ שם","שָׁם","Pd"], ["פחדו","פחד","vqp3cp"], ["פחד","פַּחַד_1","ncms"], ["לא","לֹא","Pn"], ["היה","היה","vqp3ms"], ["פחד","פַּחַד_1","ncms"], ["כי","כִּי_2","Pc"], ["אלהים","אֱלֹהִים","ncmp"], ["פזר","פזר","vpp3ms"], ["עצמות","עֶצֶם_1","ncfpc"], ["חנ׳ך","חנה_1","vqPmscX2ms"], ["הבשתה","בושׁ_1","vhp2ms"], ["כי","כִּי_2","Pc"], ["אלהים","אֱלֹהִים","ncmp"], ["מאס׳ם","מאס_1","vqp3msX3mp"], ["׃","",""]] },
+            { reference: "Ps 53:7", frag: "f11_12:4", words: [["מי","מִי","pii"], ["י ]ת##ן","נתן","vqi3ms"], ["ב","בְּ","Pp"], ["יום","יֹום_1","ncmsc"], ["ציון","צִיֹּון","np"], ["[ ישעות","יְשׁוּעָה","ncfpc"], ["ישראל","יִשְׂרָאֵל","np"], ["ב","בְּ","Pp"], ["שוב","שׁוב","vqc"], ["אלהים","אֱלֹהִים","ncmp"], ["שבות","שְׁבוּת","ncfsc"], ["עמ׳ו","עַם","ncmscX3ms"], ["יגל","גיל","vqi3ms"], ["יעקב","יַעֲקֹב","np"], ["ישמח","שׂמח","vqi3ms"], ["ישראל","יִשְׂרָאֵל","np"], ["׃","",""]] },
+            { reference: "Ps 54:1", frag: "f11_12:6", words: [["[ ל","לְ","Pp+Pa"], ["מנצח","נצח","vpPms"], ["ב","בְּ","Pp"], ["נגינת","נְגִינָה","ncfp"], ["משכיל","מַשְׂכִּיל","ncms"], ["ל","לְ","Pp"], ["דוד","דָּוִד","np"], ["׃","",""]] },
+            { reference: "Ps 54:2", frag: "f11_12:6", words: [["ב","בְּ","Pp"], ["בוא","בוא","vqc"], ["ה","הַ","Pa"], ["זיפים","זִיפִי","np"], ["ו","וְ","Pc"], ["יאמרו","אמר_1","vqw3mp"], ["ל","לְ","Pp"], ["שאול","שָׁאוּל","np"], ["ה","הֲ","Pg"], ["לוא","לֹא","Pn"], ["דויד","דָּוִד","np"], [" ]מ##סתתר","סתר","vtPms"], ["עמ׳נו","עִם","PpX1cp"], ["׃","",""]] },
+            { reference: "Ps 54:3", frag: "f11_12:6", words: [["אלהים","אֱלֹהִים","ncmp"], ["[ ב","בְּ","Pp"], ["שמ׳ך","שֵׁם_1","ncmscX2ms"], ["הושיע׳ני","ישׁע","vhvmsX1cs"], ["ו","וְ","Pc"], ["ב","בְּ","Pp"], ["גבורת׳ך","גְּבוּרָה","ncfscX2ms"], ["תדינ׳ני","דין","vqi2msX1cs"], ["׃","",""]] },
+            { reference: "Ps 54:4", frag: "f11_12:7", words: [["אלהים","אֱלֹהִים","ncmp"], ["שמע","שׁמע","vqvms"], ["תפלת׳י","תְּפִלָּה","ncfscX1cs"], ["האזינ׳ה","אזן_1","vhvmsXh"], ["ל","לְ","Pp"], ["אמרי","אֵמֶר_1","ncmpc"], ["פ׳י","פֶּה","ncmscX1cs"], ["׃","",""]] },
+            { reference: "Ps 54:5", frag: "f11_12:7", words: [["כי ]","כִּי_2","Pc"], ["זרים","זָר","amp"], ["קמו","קום","vqp3cp"], ["על׳י[ ","עַל_2","PpX1cs"], ["[ ו","וְ","Pc"], ["עריצים","עָרִיץ","amp"], ["בקשו","בקשׁ","vpp3cp"], ["נפש׳י","נֶפֶשׁ","ncbscX1cs"], ["לא","לֹא","Pn"], ["שמו","שׂים","vqp3cp"], ["אלהים","אֱלֹהִים","ncmp"], ["ל","לְ","Pp"], ["נגד׳ם","נֶגֶד","PpX3mp"], ["סלה","סֶלָה","Pi"], ["׃","",""]] },
+            { reference: "Ps 54:6", frag: "f11_12:8", words: [["הנה","הִנֵּה","Pi"], ["אלהים","אֱלֹהִים","ncmp"], ["עזר","עזר","vqPms"], ["ל׳י","לְ","PpX1cs"], ["א ]ד##ני","אֲדֹנָי","np"], ["ב","בְּ","Pp"], ["ס##מ[ כי","סמך","vqPmpc"], ["נפש׳י ]","נֶפֶשׁ","ncbscX1cs"], ["׃","",""]] },
+            { reference: "Ps 56:4", frag: "f13:1", words: [["ε"," # ","0"], [" ] # "," #  #  # ","0"], ["יום","יֹום_1","ncms"], ["אירא[ ","ירא_1","vqi1cs"], ["אני","אֲנִי","pi1cs"], ["אלי׳כה","אֶל","PpX2ms"], ["אבטח","בטח_1","vqi1cs"], ["ε"," # ","0"], ["ε"," # ","0"], [" ] # [ "," #  #  # ","0"], ["ε"," # ","0"], ["׃","",""]] },
+            { reference: "Ps 62:13", frag: "f14i:31", words: [["ε"," # ","0"], ["ו","וְ","Pc"], ["ל׳ך","לְ","PpX2ms"], ["אדני","אֲדֹנָי","np"], ["חסד","חֶסֶד_2","ncms"], ["כי","כִּי_2","Pc"], ["אתה","אַתָּה","pi2ms"], ["תשלם","שׁלם","vpi2ms"], ["ל","לְ","Pp"], ["איש","אִישׁ","ncms"], ["כ","כְּ","Pp"], ["מעש ]׳הו","מַעֲשֶׂה","ncmscX3ms"], ["׃","",""], ["ε"," # ","0"], ["׃","",""]] },
+            { reference: "Ps 63:1", frag: "f14i:33", words: [["[ מזמור","מִזְמֹור","ncms"], ["ל","לְ","Pp"], ["דוד","דָּוִד","np"], ["ב","בְּ","Pp"], ["היות׳ו","היה","vqcX3ms"], ["ב","בְּ","Pp"], ["מדבר","מִדְבָּר_1","ncmsc"], ["יהודה","יְהוּדָה","np"], ["׃","",""]] },
+            { reference: "Ps 63:2", frag: "f14i:33", words: [["אלהים","אֱלֹהִים","ncmp"], ["אל׳י","אֵל_5","ncmscX1cs"], ["אתה","אַתָּה","pi2ms"], ["אשחר׳כה","שׁחר_2","vpi1csX2ms"], ["צמאה","צמא","vqp3fs"], ["ל׳כה","לְ","PpX2ms"], ["נ ]פש׳י","נֶפֶשׁ","ncbscX1cs"], ["[ כמה","כמהּ","vqp3ms"], ["ל׳כה","לְ","PpX2ms"], ["בשר׳י","בָּשָׂר","ncmscX1cs"], ["ב","בְּ","Pp"], ["ארץ","אֶרֶץ","ncfsc"], ["ציה","צִיָּה","afs"], ["ו","וְ","Pc"], ["עי ]ף##","עָיֵף","ams"], ["בלי","בְּלִי","Pd"], ["מי#?[ ם","מַיִם","ncmp"], ["׃","",""]] },
+            { reference: "Ps 63:3", frag: "f14i:34", words: [["כן","כֵּן_2","Pd"], ["ב","בְּ","Pp+Pa"], ["קדש","קֹדֶשׁ","ncms"], ["חזיתי׳ך","חזה","vqp1csX2ms"], ["ל","לְ","Pp"], ["ראות","ראה","vqc"], ["עז׳ך","עֹז_1","ncmscX2ms"], ["ו","וְ","Pc"], ["כבוד׳ך ]","כָּבֹוד","ncmscX2ms"], ["׃","",""]] },
+            { reference: "Ps 63:4", frag: "f14i:35", words: [["[ כי","כִּי_2","Pc"], ["טוב","טֹוב_1","ams"], ["חסד׳כה","חֶסֶד_2","ncmscX2ms"], ["מ","מִן","Pp"], ["חיים","חַי_1","ncmp"], ["שפ ]ת##׳י","שָׂפָה","ncfdcX1cs"], ["ישבחו[ ׳נ׳כה","שׁבח_1","vpi3mpXnX2ms"], ["ε"," # ","0"], ["׃","",""]] },
+            { reference: "Ps 66:16", frag: "f14ii:28", words: [["ε"," # ","0"], ["לכ ]ו#?","הלך","vqvmp"], ["ו","וְ","Pc"], ["שמעו[ ","שׁמע","vqvmp"], ["ו","וְ","Pc"], ["אספרה","ספר","vpi1csh"], ["כול","כֹּל","ncmsc"], ["יראי ]","יָרֵא","ampc"], ["א##ל##הים[ ","אֱלֹהִים","ncmp"], ["אשר","אֲשֶׁר","Pr"], ["עשה","עשׂה_1","vqp3ms"], ["ל","לְ","Pp"], ["נפש׳י","נֶפֶשׁ","ncbscX1cs"], ["׃","",""]] },
+            { reference: "Ps 66:17", frag: "f14ii:29", words: [["אלי׳ו","אֶל","PpX3ms"], ["פ׳י","פֶּה","ncmscX1cs"], ["קראתי","קרא_1","vqp1cs"], ["ו","וְ","Pc"], ["רומם","רֹומַם","ncms"], ["תחת","תַּחַת_1","ncms"], ["לשונ׳י","לָשֹׁון","ncbscX1cs"], ["׃","",""]] },
+            { reference: "Ps 66:18", frag: "f14ii:29", words: [["א ]ו#?ן","אָוֶן","ncms"], ["אם","אִם","Pc"], ["ר[ איתי","ראה","vqp1cs"], ["ב","בְּ","Pp"], ["לב׳י","לֵב","ncmscX1cs"], ["לוא","לֹא","Pn"], ["ישמע ]","שׁמע","vqi3ms"], ["אד#ני","אֲדֹנָי","np"], ["׃","",""]] },
+            { reference: "Ps 66:19", frag: "f14ii:30", words: [["אכן?","אָכֵן_1","Pd"], ["[ שמע","שׁמע","vqp3ms"], ["אלהים","אֱלֹהִים","ncmp"], ["הקשיב","קשׁב","vhp3ms"], ["ב","בְּ","Pp"], ["קול","קֹול","ncmsc"], ["תפלת׳י","תְּפִלָּה","ncfscX1cs"], ["׃","",""]] },
+            { reference: "Ps 66:20", frag: "f14ii:30", words: [["ברוך","ברך_2","vqsms"], ["אלהים","אֱלֹהִים","ncmp"], ["א ]שר","אֲשֶׁר","Pr"], ["לוא","לֹא","Pn"], ["[ הסיר","סור","vhp3ms"], ["תפ ]ל#ת׳י","תְּפִלָּה","ncfscX1cs"], ["ו","וְ","Pc"], ["חסד##׳[ ו ]","חֶסֶד_2","ncmscX3ms"], ["מ","מִן","Pp"], ["אות׳י","אֵת_2","PpX1cs"], ["׃","",""]] },
+            { reference: "Ps 67:1", frag: "f14ii:32", words: [["ל","לְ","Pp+Pa"], ["מנצ#ח##[ ","נצח","vpPms"], ["ב","בְּ","Pp"], ["נגינת","נְגִינָה","ncfp"], ["מזמור","מִזְמֹור","ncms"], ["שיר","שִׁיר","ncms"], ["׃","",""]] },
+            { reference: "Ps 67:2", frag: "f14ii:32", words: [["אלהים","אֱלֹהִים","ncmp"], ["יחנ׳נו","חנן_1","vqi3msX1cp"], ["ו","וְ","Pc"], ["יבר ]כ##׳נ#?ו#?","ברך_2","vpi3msX1cp"], ["יאר","אור","vhi3ms"], ["פני׳ו","פָּנֶה","ncbpcX3ms"], ["א[ ת׳נו","אֵת_2","PpX1cp"], ["סלה","סֶלָה","Pi"], ["׃","",""]] },
+            { reference: "Ps 67:3", frag: "f14ii:32", words: [["ל","לְ","Pp"], ["דעת","ידע","vqc"], ["ב","בְּ","Pp+Pa"], ["ארץ","אֶרֶץ","ncfs"], ["דרכ׳ך ]","דֶּרֶךְ","ncbscX2ms"], ["[ ב","בְּ","Pp"], ["כל","כֹּל","ncmsc"], ["גוים","גֹּוי","ncmp"], ["ישועת׳ך","יְשׁוּעָה","ncfscX2ms"], ["׃","",""]] },
+            { reference: "Ps 67:4", frag: "f14ii:33", words: [["יודו׳כה","ידה_2","vhi3mpX2ms"], ["עמים","עַם","ncmp"], [" ]אלהים","אֱלֹהִים","ncmp"], ["יודו׳כה[ ","ידה_2","vhi3mpX2ms"], ["עמים","עַם","ncmp"], ["כול׳ם","כֹּל","ncmscX3mp"], ["׃","",""]] },
+            { reference: "Ps 67:5", frag: "f14ii:33", words: [["ישמחו","שׂמח","vqi3mp"], ["ו","וְ","Pc"], ["ירננו","רנן","vpi3mp"], ["לא ]מ##ים","לְאֹם","ncmp"], ["[ כי","כִּי_2","Pc"], ["תשפט","שׁפט","vqi2ms"], ["עמים","עַם","ncmp"], ["מישור","מִישֹׁור","ncms"], ["ו","וְ","Pc"], ["לאמים","לְאֹם","ncmp"], ["ב","בְּ","Pp+Pa"], ["ארץ","אֶרֶץ","ncfs"], ["תנח ]׳ם","נחה_1","vhi2msX3mp"], ["סלה","סֶלָה","Pi"], ["׃","",""]] },
+            { reference: "Ps 67:6", frag: "f14ii:34", words: [["ו","וְ","Pc"], ["ידו׳כה","ידה_2","vhi3mpX2ms"], ["[ עמים","עַם","ncmp"], ["אלהים","אֱלֹהִים","ncmp"], ["יודו׳ך","ידה_2","vhi3mpX2ms"], ["עמים ]","עַם","ncmp"], ["[ כל׳ם","כֹּל","ncmscX3mp"], ["׃","",""]] },
+            { reference: "Ps 67:7", frag: "f14ii:35", words: [["ארץ","אֶרֶץ","ncfs"], ["נתנה","נתן","vqp3fs"], ["יבול׳ה","יְבוּל","ncmscX3fs"], ["יברכ׳נו","ברך_2","vpi3msX1cp"], ["אלהים","אֱלֹהִים","ncmp"], ["אלהי ]׳נ#?ו#?","אֱלֹהִים","ncmpcX1cp"], ["׃","",""]] },
+            { reference: "Ps 67:8", frag: "f14ii:35", words: [["יברכו׳כה","ברך_2","vpi3mpX2ms"], ["אלהים[ ","אֱלֹהִים","ncmp"], ["ו","וְ","Pc"], ["ייראו","ירא_1","vqi3mp"], ["את׳ו","אֵת_1","PoX3ms"], ["כל","כֹּל","ncmsc"], ["אפסי","אֶפֶס","ncmpc"], ["ארץ ]","אֶרֶץ","ncfs"], ["׃","",""]] },
+            { reference: "Ps 69:1", frag: "f19ii_20:25", words: [["[ ל","לְ","Pp+Pa"], ["מנצח","נצח","vpPms"], [" ]ע##ל","עַל_2","Pp"], ["שושנים","שׁוּשַׁן_1","ncbp"], ["ל","לְ","Pp"], ["דויד","דָּוִד","np"], ["׃","",""]] },
+            { reference: "Ps 69:2", frag: "f19ii_20:25", words: [["הוש[ יע׳ני","ישׁע","vhvmsX1cs"], ["אלהים","אֱלֹהִים","ncmp"], ["כי","כִּי_2","Pc"], ["באו","בוא","vqp3cp"], ["מים","מַיִם","ncmp"], ["ע ]ד##","עַד_3","Pp"], ["נפש","נֶפֶשׁ","ncbsa"], ["׃","",""]] },
+            { reference: "Ps 69:3", frag: "f19ii_20:25", words: [["טבעתי","טבע","vqp1cs"], ["בין","בַּיִן","Pp"], ["מצולה","מְצֹולָה","ncfs"], ["אין","אַיִן_1","Pd"], ["מ[ עמד ]","מָעֳמָד","ncms"], ["[ באתי","בוא","vqp1cs"], [" ]ב","בְּ","Pp"], ["מעמקי","מַעֲמַקִּים","ncmpc"], ["מים","מַיִם","ncmp"], ["שבולת","שִׁבֹּלֶת_2","ncfs"], ["ש##[ טפת׳ני","שׁטף","vqp3fsX1cs"], ["׃","",""]] },
+            { reference: "Ps 69:4", frag: "f19ii_20:26", words: [["יגעתי","יגע","vqp1cs"], ["ב","בְּ","Pp"], ["קרא׳י","קרא_1","vqcX1cs"], ["נחר","חרר_2","vnp3ms"], ["גרונ ]׳י?","גָּרֹון","ncmscX1cs"], ["כליו","כלה","vqp3cp"], ["שנ׳י","שֵׁן_1","ncbdcX1cs"], ["ב","בְּ","Pp"], ["חיל","חִיל","ncms"], ["ל","לְ","Pp"], ["אלה׳י","אֱלֹהִים","ncmpcX1cs"], ["יש[ ראל ]","יִשְׂרָאֵל","np"], ["׃","",""]] },
+            { reference: "Ps 69:5", frag: "f19ii_20:27", words: [["[ ר ]ב##ו#?","רבב_1","vqp3cp"], ["מ","מִן","Pp"], ["שערי","שֵׂעָר","ncmpc"], ["ראש׳י","רֹאשׁ_1","ncmscX1cs"], ["שונא׳י","שׂנא","vqPmpcX1cs"], ["חנם#[ ","חִנָּם","Pd"], ["עצמו","עצם_1","vqp3cp"], ["מצמית׳י","צמת","vhPmpcX1cs"], ["איב׳י","אֹיֵב","ncmpcX1cs"], ["שקר","שֶׁקֶר","ncms"], ["אשר ]","אֲשֶׁר","Pr"], ["לוא#","לֹא","Pn"], ["גזלתי#?","גזל","vqp1cs"], ["[ אז","אָז","Pd"], ["אשיב","שׁוב","vhi1cs"], ["׃","",""]] },
+            { reference: "Ps 69:6", frag: "f19ii_20:27", words: [["אלהים ]","אֱלֹהִים","ncmp"], ["א##תה","אַתָּה","pi2ms"], ["ידעתה","ידע","vqp2ms"], ["לוא","לֹא","Pn"], ["לויתי","לוה_2","vqp1cs"], ["ו","וְ","Pc"], ["אשלמ#׳נ#?[ ","שׁלם","vpi1csX3fs"], ["ε"," # ","0"], ["׃","",""]] },
+            { reference: "Ps 69:7", frag: "f19ii_20:28", words: [["אל","אַל","Pd"], ["י ]ב##ושו","בושׁ_1","vqi3mp"], ["קוי׳כה","קוה_1","vqPmpcX2ms"], ["א##[ דני","אֲדֹנָי","np"], ["יה ]ו#?ה##[ ","יהוה","np"], ["צבאות","צָבָא","ncbp"], ["אל ]","אַל","Pd"], ["[ י ]כ##למו","כלם","vni3mp"], ["מבקש#י׳כה#","בקשׁ","vpPmpcX2ms"], ["אלהי","אֱלֹהִים","ncmpc"], ["ישראל","יִשְׂרָאֵל","np"], ["׃","",""]] },
+            { reference: "Ps 69:8", frag: "f19ii_20:29", words: [["כ[ י","כִּי_2","Pc"], ["ע ]ל##י׳כה","עַל_2","PpX2ms"], ["נ[ שאתי","נשׂא","vqp1cs"], ["חרפה","חֶרְפָּה","ncfs"], ["כסת ]ה##","כסה","vpp3fs"], ["כלמה","כְּלִמָּה","ncfs"], ["פנ׳י","פָּנֶה","ncbpcX1cs"], ["׃","",""]] },
+            { reference: "Ps 69:9", frag: "f19ii_20:29", words: [["מי","מִי","pii"], ["זר","זָר","ams"], ["היית[ י","היה","vqp1cs"], ["ל","לְ","Pp"], ["אח׳י ]","אָח_2","ncmpcX1cs"], ["נכרי","נָכְרִי","ams"], ["ל","לְ","Pp"], ["בני","בֵּן_1","ncmpc"], ["אמ׳י","אֵם","ncfscX1cs"], ["׃","",""]] },
+            { reference: "Ps 69:10", frag: "f19ii_20:30", words: [["כי","כִּי_2","Pc"], ["קנא[ ת","קִנְאָה","ncfsc"], ["בית׳כה ]","בַּיִת_1","ncmscX2ms"], ["אכלת׳ני","אכל","vqp3fsX1cs"], ["ו","וְ","Pc"], ["חרפ##[ ות","חֶרְפָּה","ncfpc"], ["חורפי׳כה","חרף_2","vqPmpcX2ms"], ["נ ]פ##לו","נפל","vqp3cp"], ["ע#ל׳י","עַל_2","PpX1cs"], ["׃","",""]] },
+            { reference: "Ps 69:11", frag: "f19ii_20:30", words: [["ו","וְ","Pc"], ["אך","אַךְ","Pd"], ["ב","בְּ","Pp+Pa"], ["צום","צֹום","ncms"], ["נפש׳י","נֶפֶשׁ","ncbscX1cs"], ["ו","וְ","Pc"], ["ת##[ הי ]","היה","vqw3fsj"], ["ל","לְ","Pp"], ["חרפות","חֶרְפָּה","ncfp"], ["ל׳י","לְ","PpX1cs"], ["׃","",""]] },
+            { reference: "Ps 69:12", frag: "f19ii_20:31", words: [["ו","וְ","Pc"], ["אתנה","נתן","vqw1csh"], ["לב##[ וש׳י","לְבוּשׁ","ncmscX1cs"], [" ]שק","שַׂק","ncms"], ["ו","וְ","Pc"], ["תהי","היה","vqw3fsj"], ["ל׳הם","לְ","PpX3mp"], ["[ ל","לְ","Pp"], ["משל","מָשָׁל_1","ncms"], ["׃","",""]] },
+            { reference: "Ps 69:13", frag: "f19ii_20:31", words: [["י ]שיחו","שׂיח","vqi3mp"], ["ישבי","ישׁב","vqPmpc"], ["שער","שַׁעַר_1","ncms"], ["ב׳י","בְּ","PpX1cs"], ["י?נגנ?ו?[ ","נגן","vpi3mp"], ["ש ]תי#?","שׁתה","vqPmpc"], ["שכר","שֵׁכָר","ncms"], ["׃","",""]] },
+            { reference: "Ps 69:14", frag: "f19ii_20:32", words: [["ו","וְ","Pc"], ["אני","אֲנִי","pi1cs"], ["תפלת׳י","תְּפִלָּה","ncfscX1cs"], ["למה[ ","לָמָּה","Pg"], ["יהו ]ה#","יהוה","np"], ["עתה","עַתָּה","Pd"], ["רצון","רָצֹון","ncms"], ["אלה##[ ים","אֱלֹהִים","ncmp"], ["ב ]","בְּ","Pp"], ["רב","רֹב","ncmsc"], ["חסד׳כה","חֶסֶד_2","ncmscX2ms"], ["ענ׳ני","ענה_1","vqvmsX1cs"], ["ב","בְּ","Pp"], ["אמת","אֱמֶת","ncfsc"], ["ישע׳כה","יֵשַׁע","ncmscX2ms"], [" # [ "," #  #  # ","0"], ["׃","",""]] },
+            { reference: "Ps 69:15", frag: "f19ii_20:33", words: [["הצי?ל׳ני?","נצל","vhvmsX1cs"], ["מ#","מִן","Pp"], ["טיט","טִיט","ncms"], ["[ ו ]","וְ","Pc"], ["א##ל##","אַל","Pd"], ["א##טבע##[ ה","טבע","vqi1csh"], [" ]ו","וְ","Pc"], ["יקח׳ני","לקח","vqi3msX1cs"], ["גזל׳י?[ ","גזל","vqPmscX1cs"], ["הצ ]יל׳ני","נצל","vhvmsX1cs"], ["מ","מִן","Pp"], ["שנא׳י","שׂנא","vqPmpcX1cs"], ["מ","מִן","Pp"], ["עמקי","עֹמֶק","ncmpc"], ["מים","מַיִם","ncmp"], ["׃","",""]] },
+            { reference: "Ps 69:16", frag: "f19ii_20:33", words: [["אל","אַל","Pd"], ["תשט##[ פ׳ני ]","שׁטף","vqi3fsX1cs"], ["שבולת","שִׁבֹּלֶת_2","ncfsc"], ["מ#ים","מַיִם","ncmp"], ["ו","וְ","Pc"], ["אל","אַל","Pd"], ["ת#טבע׳ני","טבע","vqi3fsX1cs"], ["מצ#ולה","מְצֹולָה","ncfs"], ["ו","וְ","Pc"], ["אל","אַל","Pd"], ["ת#[ אטר","אטר","vqi3fs"], ["על ]׳י","עַל_2","PpX1cs"], ["בא##ר","בְּאֵר_1","ncfs"], ["פי","פֶּה","ncmsc"], ["׃","",""]] },
+            { reference: "Ps 69:17", frag: "f19ii_20:34", words: [["ענ׳ני","ענה_1","vqvmsX1cs"], ["כ","כְּ","Pp"], ["טוב","טֹוב_1","ams"], ["חסד׳כה","חֶסֶד_2","ncmscX2ms"], ["כ","כְּ","Pp"], ["ר##[ ב","רֹב","ncmsc"], ["רחמי׳כה ]","רַחֲמִים","ncmpcX2ms"], ["פנה","פנה","vqvms"], ["אל׳י","אֶל","PpX1cs"], ["׃","",""]] },
+            { reference: "Ps 69:18", frag: "f19ii_20:35", words: [["א#ל","אַל","Pd"], ["תסת#ר#","סתר","vhi2ms"], ["פני׳כה","פָּנֶה","ncbpcX2ms"], ["מ","מִן","Pp"], ["עבד׳כה","עֶבֶד_1","ncmscX2ms"], ["כי[ ","כִּי_2","Pc"], ["צר","צרר_1","vqp3ms"], ["ל׳י","לְ","PpX1cs"], ["מה ]ר##ה","מְהֵרָה","Pd"], ["ענ׳ני","ענה_1","vqvmsX1cs"], ["׃","",""]] },
+            { reference: "Ps 69:19", frag: "f19ii_20:35", words: [["קרב","קרב","vqvms"], ["על","עַל_2","Pp"], ["נפש׳י","נֶפֶשׁ","ncbscX1cs"], ["גאל׳ה","גאל_1","vqvmsX3fs"], ["ל[ מען","לְמַעַן","Pc"], ["איב׳י ]","אֹיֵב","ncmpcX1cs"], ["׃","",""]] },
+            { reference: "4Q83 f21:1", frag: "f21:1", words: [["ε"," # ","0"], [" ] # "," #  #  # ","0"], [" # [ "," #  #  # ","0"], ["ε"," # ","0"]] },
+            { reference: "4Q83 f21:2", frag: "f21:2", words: [["ε"," # ","0"], [" ]באד##[ "," # באד # ","0"], ["ε"," # ","0"]] },
+            { reference: "4Q83 f21:3", frag: "f21:3", words: [["ε"," # ","0"], [" ] # [ "," #  #  # ","0"], ["ε"," # ","0"], ["׃","",""]] },
+            { reference: "4Q83 f22:1", frag: "f22:1", words: [["ε"," # ","0"], [" ] # [ "," #  #  # ","0"], ["ε"," # ","0"]] },
+            { reference: "4Q83 f22:2", frag: "f22:2", words: [["ε"," # ","0"], [" ]יהי","היה","vqi3msj"], ["ε"," # ","0"], ["׃","",""]] },
+            { reference: "4Q83 f23:1", frag: "f23:1", words: [["ε"," # ","0"], [" ]תרומו[ ","רום","vqi2mp"], ["ε"," # ","0"], ["׃","",""]] },
+            { reference: "4Q83 f24:1", frag: "f24:1", words: [["ε"," # ","0"], [" ]ם"," #  # ם","0"], ["פ#ני[ ","פָּנֶה","ncbpc"], ["ε"," # ","0"]] },
+            { reference: "4Q83 f24:2", frag: "f24:2", words: [["ε"," # ","0"], [" ]ני׳הם[ "," #  # ן","0X3mp"], ["ε"," # ","0"]] },
+            { reference: "4Q83 f24:3", frag: "f24:3", words: [["ε"," # ","0"], [" ] # [ "," #  #  # ","0"], ["ε"," # ","0"], ["׃","",""]] }
+        ];
+
+        const QDR_CURRENT = {"type": "biblical", "mode": "cave", "cave": "4Q", "scroll": "4Q83", "url": "/biblical/4Q83/"};
+
+        // ── Navigation dropdowns ──────────────────────────────────────
+        (function () {
+            const navType   = document.getElementById('navType');
+            const navGroup  = document.getElementById('navGroup');
+            const navScroll = document.getElementById('navScroll');
+
+            function caveSort(a, b) {
+                const n = s => { const m = s.match(/^(\d+)/); return m ? +m[1] : 999; };
+                return n(a) - n(b);
+            }
+
+            function buildGroup(type, selectCave, selectBook) {
+                navGroup.innerHTML = '';
+                const data = QDR_NAV[type];
+                const caves = Object.keys(data.caves).sort(caveSort);
+                caves.forEach(cave => {
+                    const o = document.createElement('option');
+                    o.value = 'cave:' + cave;
+                    o.textContent = cave;
+                    if (cave === selectCave) o.selected = true;
+                    navGroup.appendChild(o);
+                });
+                if (type === 'biblical' && data.books && data.books.length) {
+                    const div = document.createElement('option');
+                    div.disabled = true;
+                    div.textContent = '───────';
+                    navGroup.appendChild(div);
+                    data.books.forEach(b => {
+                        const o = document.createElement('option');
+                        o.value = 'book:' + b.url;
+                        o.textContent = b.name;
+                        if (b.name === selectBook) o.selected = true;
+                        navGroup.appendChild(o);
+                    });
+                }
+            }
+
+            function buildScroll(type, cave, selectUrl) {
+                const scrolls = (QDR_NAV[type].caves[cave] || []);
+                navScroll.innerHTML = '';
+                scrolls.forEach(sc => {
+                    const o = document.createElement('option');
+                    o.value = sc.url;
+                    o.textContent = sc.id;
+                    if (sc.url === selectUrl) o.selected = true;
+                    navScroll.appendChild(o);
+                });
+                navScroll.style.display = scrolls.length ? '' : 'none';
+            }
+
+            function onGroupChange() {
+                const val = navGroup.value;
+                if (val && val.startsWith('book:')) {
+                    navScroll.style.display = 'none';
+                    window.location.href = val.slice(5);
+                } else if (val && val.startsWith('cave:')) {
+                    buildScroll(navType.value, val.slice(5), null);
+                }
+            }
+
+            // Initialise from per-page current data
+            navType.value = QDR_CURRENT.type || 'biblical';
+            if (QDR_CURRENT.mode === 'cave') {
+                buildGroup(QDR_CURRENT.type, QDR_CURRENT.cave, null);
+                navGroup.value = 'cave:' + QDR_CURRENT.cave;
+                buildScroll(QDR_CURRENT.type, QDR_CURRENT.cave, QDR_CURRENT.url);
+            } else if (QDR_CURRENT.mode === 'book') {
+                buildGroup(QDR_CURRENT.type, null, QDR_CURRENT.book);
+                navScroll.style.display = 'none';
+            } else {
+                buildGroup('biblical', null, null);
+            }
+
+            navType.addEventListener('change', () => {
+                buildGroup(navType.value, null, null);
+                const firstCave = Object.keys(QDR_NAV[navType.value].caves).sort(caveSort)[0];
+                if (firstCave) { navGroup.value = 'cave:' + firstCave; buildScroll(navType.value, firstCave, null); }
+            });
+            navGroup.addEventListener('change', onGroupChange);
+            navScroll.addEventListener('change', () => { if (navScroll.value) window.location.href = navScroll.value; });
+        })();
+        // ─────────────────────────────────────────────────────────────
+
+        let fontScale = 1;
+
+        const scrollContent   = document.getElementById('scrollContent');
+        const linguisticPanel = document.getElementById('linguisticPanel');
+        const selectedWordEl  = document.getElementById('selectedWord');
+        const panelLemmaEl    = document.getElementById('panelLemmaRow');
+        const panelDefEl      = document.getElementById('panelDef');
+        const panelMorphEl    = document.getElementById('panelMorph');
+        const panelCloseEl    = document.getElementById('panelClose');
+        const scrollLeftBtn   = document.getElementById('scrollLeft');
+        const scrollRightBtn  = document.getElementById('scrollRight');
+        const fontSmallerBtn  = document.getElementById('fontSmaller');
+        const fontBiggerBtn   = document.getElementById('fontBigger');
+
+        // ── Lexicon & morphology helpers ──────────────────────────────
+        function stripNiqqud(s) {
+            return s.normalize('NFD').replace(/[֑-ׇ]/g, '');
+        }
+
+        function lexLookup(lemma) {
+            if (!lemma || typeof QDR_LEX === 'undefined') return null;
+            const clean = stripNiqqud(lemma.replace(/_\d+$/, '').split('#')[0].trim()).trim();
+            return QDR_LEX[clean] || null;
+        }
+
+        const VERB_STEMS = {
+            q:'Qal', N:'Niphal', n:'Niphal', p:'Piel', P:'Pual',
+            h:'Hiphil', H:'Hophal', t:'Hithpael', v:'Polel',
+            d:'Peal', f:'Pael', k:'Aphel', e:'Ethpeel',
+            i:'Ithpeel', l:'Ithpaal', m:'Haphel', s:'Shafel',
+        };
+        const VERB_ASPECTS = {
+            p:{label:'Perfect',              tense:'Past',   verbForm:'Finite'},
+            i:{label:'Imperfect',            tense:'Future', verbForm:'Finite'},
+            c:{label:'Consecutive perfect',  tense:'Past',   verbForm:'Finite', mood:'Sequential'},
+            w:{label:'Wayyiqtol',            tense:'Past',   verbForm:'Finite', mood:'Sequential'},
+            P:{label:'Participle',           verbForm:'Participle'},
+            a:{label:'Passive participle',   verbForm:'Participle', voice:'Passive'},
+            s:{label:'Imperative',           mood:'Imperative',     verbForm:'Finite'},
+            v:{label:'Infinitive absolute',  verbForm:'Infinitive'},
+        };
+        const PART_TYPES = {
+            a:{pos:'DET',   label:'Article'},
+            c:{pos:'CCONJ', label:'Conjunction'},
+            d:{pos:'PRON',  label:'Demonstrative'},
+            g:{pos:'ADP',   label:'Genitive marker'},
+            i:{pos:'PART',  label:'Interrogative'},
+            n:{pos:'PART',  label:'Negation'},
+            o:{pos:'PART',  label:'Object marker'},
+            p:{pos:'ADP',   label:'Preposition'},
+            r:{pos:'SCONJ', label:'Relative'},
+        };
+
+        const PERSON_LABEL = {'1':'1st', '2':'2nd', '3':'3rd'};
+
+        function parsePGN(s) {
+            if (!s || s === '0' || s === 'd') return null;
+            const r = {};
+            let i = 0;
+            if ('123'.includes(s[i])) { r.person = PERSON_LABEL[s[i]] || s[i]; i++; }
+            const gMap = {m:'Masculine', f:'Feminine', c:'Common', b:'Common'};
+            if (gMap[s[i]]) { r.gender = gMap[s[i]]; i++; }
+            const nMap = {s:'Singular', p:'Plural', d:'Dual'};
+            if (nMap[s[i]]) { r.number = nMap[s[i]]; i++; }
+            if (s[i] === 'j') r.mood = 'Jussive';
+            return Object.keys(r).length ? r : null;
+        }
+
+        function parseMorpho(code) {
+            if (!code || code === '0') return null;
+            const xIdx = code.indexOf('X');
+            const main = xIdx !== -1 ? code.slice(0, xIdx) : code;
+            const sfxCode = xIdx !== -1 ? code.slice(xIdx + 1) : null;
+            const ch = main[0];
+            let r = {};
+
+            if (ch === 'v') {
+                r.pos = 'Verb';
+                const stem = main[1];
+                const asp  = main[2];
+                r.stem   = VERB_STEMS[stem] || stem;
+                const av = VERB_ASPECTS[asp] || {};
+                if (av.label)    r.aspect   = av.label;
+                if (av.verbForm) r.verbForm = av.verbForm;
+                if (av.tense)    r.tense    = av.tense;
+                if (av.mood)     r.mood     = av.mood;
+                if (av.voice)    r.voice    = av.voice;
+                const pgn = parsePGN(main.slice(3));
+                if (pgn) Object.assign(r, pgn);
+            } else if (ch === 'n' || ch === 'u') {
+                const sub = main.slice(1);
+                r.pos = (sub[0] === 'p') ? 'Proper noun' : 'Noun';
+                const pgn = parsePGN(sub.slice(1));
+                if (pgn) Object.assign(r, pgn);
+                const stMap = {a:'Absolute', c:'Construct', d:'Determined'};
+                const st = stMap[sub[4]] || stMap[sub[3]];
+                if (st) r.state = st;
+            } else if (ch === 'a') {
+                r.pos = 'Adjective';
+                const pgn = parsePGN(main.slice(1));
+                if (pgn) Object.assign(r, pgn);
+                const stMap = {a:'Absolute', c:'Construct', d:'Determined'};
+                const st = stMap[main[3]];
+                if (st) r.state = st;
+            } else if (ch === 'p') {
+                r.pos = 'Pronoun';
+                const sub = main.slice(1);
+                const tMap = {i:'Independent', d:'Demonstrative', r:'Relative', s:'Suffix'};
+                if (tMap[sub[0]]) { r.pronType = tMap[sub[0]]; }
+                const pgn = parsePGN(sub.slice(1));
+                if (pgn) Object.assign(r, pgn);
+            } else if (ch === 'P') {
+                const pt = PART_TYPES[main[1]] || {pos:'PART', label:'Particle'};
+                r.pos      = pt.label;
+                r.partType = undefined;
+            } else {
+                return null;
+            }
+
+            if (sfxCode) {
+                const sfx = parsePGN(sfxCode);
+                if (sfx) r.suffix = sfx;
+            }
+            return r;
+        }
+
+        function morphToHTML(morph) {
+            const ORDER = ['pos','stem','aspect','mood','voice',
+                           'person','gender','number','state','pronType'];
+            const LABEL = {
+                pos:'Part of speech', stem:'Stem', aspect:'Aspect',
+                mood:'Mood', voice:'Voice', person:'Person',
+                gender:'Gender', number:'Number', state:'State',
+                pronType:'Type',
+            };
+            let html = '';
+            for (const k of ORDER) {
+                if (morph[k] !== undefined) {
+                    html += `<span class="morph-label">${LABEL[k]}</span><span>${morph[k]}</span>`;
+                }
+            }
+            if (morph.suffix) {
+                const sfx = morph.suffix;
+                const parts = [sfx.person, sfx.gender, sfx.number].filter(Boolean).join(' ');
+                if (parts) html += `<span class="morph-label">Suffix</span><span>${parts}</span>`;
+            }
+            return html;
+        }
+        // ─────────────────────────────────────────────────────────────
+
+        function cleanHebrewText(text) {
+            return text
+                .replace(/\{\{[^}]*\}\}/g, '')
+                .replace(/\(\^[^^]*\^\)/g, '')
+                .replace(/\(<<[^>]*>>\)/g, '')
+                .replace(/\(<[^>]*>\)/g, '')
+                .replace(/[\[\]{}()<>^]/g, '')
+                .replace(/[#?εε]/g, '')
+                .replace(/\s+/g, ' ')
+                .trim();
+        }
+
+        function parseWord(sf, inBracket) {
+            const tokens = [];
+            let i = 0;
+            let bs = inBracket;
+            while (i < sf.length) {
+                if (sf.slice(i,i+2) === '{{') {
+                    const end = sf.indexOf('}}', i+2);
+                    if (end !== -1) { tokens.push({t:'removed', s:sf.slice(i+2,end).trim()}); i=end+2; continue; }
+                }
+                if (sf.slice(i,i+3) === '(^ ') {
+                    const end = sf.indexOf(' ^)', i+3);
+                    if (end !== -1) { tokens.push({t:'supra', s:sf.slice(i+3,end)}); i=end+3; continue; }
+                }
+                if (sf.slice(i,i+3) === '(<<') {
+                    const end = sf.indexOf('>>', i+3);
+                    if (end !== -1) { tokens.push({t:'anc', s:sf.slice(i+3,end).trim()}); i=end+2; if(sf[i]===')') i++; continue; }
+                }
+                if (sf.slice(i,i+3) === '(< ') {
+                    const end = sf.indexOf(' >)', i+3);
+                    if (end !== -1) { tokens.push({t:'mod', s:sf.slice(i+3,end)}); i=end+3; continue; }
+                }
+                if (sf[i] === '[') { bs=true;  i++; continue; }
+                if (sf[i] === ']') { bs=false; i++; continue; }
+                if (sf[i] === 'ε') { tokens.push({t:'missing', s:'□'}); i++; continue; }
+                const cc = sf.charCodeAt(i);
+                if (cc >= 0x05D0 && cc <= 0x05EA) {
+                    let letter = sf[i]; i++;
+                    while (i < sf.length && sf.charCodeAt(i) >= 0x05B0 && sf.charCodeAt(i) <= 0x05C7) { letter += sf[i]; i++; }
+                    let type = bs ? 'recon' : 'letter';
+                    if      (sf.slice(i,i+2)==='##') { type='unc4'; i+=2; }
+                    else if (sf.slice(i,i+2)==='#?') { type='unc3'; i+=2; }
+                    else if (sf[i]==='#')             { type='unc2'; i++;  }
+                    else if (sf[i]==='?')             { type='unc1'; i++;  }
+                    tokens.push({t:type, s:letter});
+                    continue;
+                }
+                if ('־׃׀׳'.includes(sf[i])) { tokens.push({t:'letter', s:sf[i]}); i++; continue; }
+                i++;
+            }
+            return {tokens, bs};
+        }
+
+        function tokensToHTML(tokens) {
+            return tokens.map(({t,s}) => {
+                const e = s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+                switch(t) {
+                    case 'recon':   return `<span class="dmg-recon">${e}</span>`;
+                    case 'unc1':    return `<span class="dmg-unc1">${e}</span>`;
+                    case 'unc2':    return `<span class="dmg-unc2">${e}</span>`;
+                    case 'unc3':    return `<span class="dmg-unc3">${e}</span>`;
+                    case 'unc4':    return `<span class="dmg-unc4">${e}</span>`;
+                    case 'removed': return `<span class="dmg-removed">${e}</span>`;
+                    case 'supra':   return `<sup class="dmg-supra">${e}</sup>`;
+                    case 'anc':     return `<span class="dmg-anc">${e}</span>`;
+                    case 'mod':     return `<span class="dmg-mod">${e}</span>`;
+                    case 'missing': return '';
+                    default:        return e;
+                }
+            }).join('');
+        }
+
+        function displayContent() {
+            scrollContent.innerHTML = '';
+            scrollContent.className = 'scroll-content hebrew-mode';
+
+            const useParser = true;
+            let bracketState = false;
+
+            hebrewData.forEach(verse => {
+                const verseContainer = document.createElement('div');
+                verseContainer.className = 'verse-container';
+
+                const reference = document.createElement('div');
+                reference.className = 'verse-reference';
+                const refText = verse.reference.replace(/&/g,'&amp;').replace(/</g,'&lt;');
+                reference.innerHTML = verse.frag
+                    ? refText + ' <span class="verse-frag">· ' + verse.frag + '</span>'
+                    : refText;
+                verseContainer.appendChild(reference);
+
+                const verseText = document.createElement('div');
+                verseText.className = 'verse-text';
+
+                verse.words.forEach(wordData => {
+                    const sf = wordData[0];
+                    const cleanedWord = cleanHebrewText(sf);
+                    if (!cleanedWord && !useParser) return;
+
+                    if (sf === '׃' || cleanedWord === '׃') {
+                        const period = document.createElement('span');
+                        period.textContent = '׃';
+                        period.style.margin = '0 0.5rem';
+                        verseText.appendChild(period);
+                    } else {
+                        const word = document.createElement('span');
+                        word.className = 'hebrew-word';
+                        if (useParser) {
+                            const {tokens, bs} = parseWord(sf, bracketState);
+                            bracketState = bs;
+                            const html = tokensToHTML(tokens);
+                            if (!html) return;
+                            if (cleanedWord === 'יהוה') word.classList.add('tetragrammaton');
+                            word.innerHTML = html;
+                        } else {
+                            if (!cleanedWord) return;
+                            if (cleanedWord === 'יהוה') word.classList.add('tetragrammaton');
+                            word.textContent = cleanedWord;
+                        }
+                        const bare = cleanedWord.replace(/[ְ-ֽֿ-ׇ]/g, '');
+                        if (cleanedWord === '־') {
+                            word.classList.add('maqqef-token');
+                            const prev = verseText.lastElementChild;
+                            if (prev && prev.classList.contains('hebrew-word')) prev.classList.add('before-maqqef');
+                        } else if (bare.length === 1 && 'בהוכלמש'.includes(bare)) {
+                            word.classList.add('prefix-particle');
+                        }
+                        word.dataset.lemma = wordData[1];
+                        word.dataset.morpho = wordData[2];
+                        verseText.appendChild(word);
+                    }
+                });
+
+                verseContainer.appendChild(verseText);
+                scrollContent.appendChild(verseContainer);
+            });
+        }
+
+
+        const fontModes = ['font-scroll', 'font-paleo', 'font-modern'];
+        let fontIndex = 0;
+        document.body.classList.add(fontModes[fontIndex]);
+
+        document.querySelectorAll('.font-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const target = btn.dataset.font;
+                const newIndex = fontModes.indexOf(target);
+                if (newIndex === fontIndex) return;
+                document.body.classList.remove(fontModes[fontIndex]);
+                fontIndex = newIndex;
+                document.body.classList.add(fontModes[fontIndex]);
+                document.querySelectorAll('.font-btn').forEach(b => b.classList.toggle('active', b.dataset.font === target));
+                displayContent();
+            });
+        });
+
+        let hoverTimeout;
+        let panelLocked = false;
+
+        function populatePanel(word) {
+            const lemma  = word.dataset.lemma  || '';
+            const morpho = word.dataset.morpho || '';
+
+            selectedWordEl.textContent = cleanHebrewText(word.innerText) || '—';
+
+            const entry = lexLookup(lemma);
+            if (entry) {
+                const def = entry.thb_def || entry.strongs_def || entry.bdb_def || '';
+                const sid = /H\d/.test(entry.strongs_id || '') ? entry.strongs_id : '';
+                let html = '';
+                if (sid) html += `<span class="strongs-id">${sid}</span>`;
+                html += def ? def : '<span class="no-def">No definition available</span>';
+                panelDefEl.innerHTML = html;
+                panelLemmaEl.textContent = entry.thb_def ? 'THB'
+                    : entry.strongs_def ? "Strong's"
+                    : entry.bdb_def ? 'BDB' : '';
+            } else {
+                panelDefEl.innerHTML = lemma ? '<span class="no-def">Not in lexicon</span>' : '';
+                panelLemmaEl.textContent = '';
+            }
+
+            const morph = parseMorpho(morpho);
+            panelMorphEl.innerHTML = morph ? morphToHTML(morph) : '';
+        }
+
+        function showPanel(word) {
+            clearTimeout(hoverTimeout);
+            populatePanel(word);
+            linguisticPanel.classList.add('active');
+        }
+
+        function hidePanel() {
+            if (panelLocked) return;
+            hoverTimeout = setTimeout(() => {
+                if (!panelLocked) linguisticPanel.classList.remove('active');
+            }, 100);
+        }
+
+        function lockPanel() {
+            panelLocked = true;
+            linguisticPanel.classList.add('locked');
+        }
+
+        function unlockPanel() {
+            panelLocked = false;
+            linguisticPanel.classList.remove('locked', 'active');
+        }
+
+        // Hover: show/hide when not locked
+        // Use closest() so child spans (damage marks) don't break the target detection.
+        // Check relatedTarget on mouseout so moving between children doesn't dismiss.
+        document.addEventListener('mouseover', (e) => {
+            if (panelLocked) return;
+            const word = e.target.closest && e.target.closest('.hebrew-word');
+            if (word) showPanel(word);
+        });
+        document.addEventListener('mouseout', (e) => {
+            const word = e.target.closest && e.target.closest('.hebrew-word');
+            if (word && !word.contains(e.relatedTarget)) hidePanel();
+        });
+
+        // Click: populate + lock
+        document.addEventListener('click', (e) => {
+            const word = e.target.closest && e.target.closest('.hebrew-word');
+            if (word) {
+                showPanel(word);
+                lockPanel();
+            } else if (panelLocked && !linguisticPanel.contains(e.target)) {
+                unlockPanel();
+            }
+        });
+
+        // Keep panel open when mouse is over it
+        linguisticPanel.addEventListener('mouseenter', () => clearTimeout(hoverTimeout));
+        linguisticPanel.addEventListener('mouseleave', hidePanel);
+
+        panelCloseEl.addEventListener('click', (e) => {
+            e.stopPropagation();
+            unlockPanel();
+        });
+
+        // Momentum drag scrolling
+        let isDragging = false;
+        let dragStartX, dragScrollLeft;
+        let velX = 0, lastMouseX, lastMouseTime, momentumFrame;
+
+        function runMomentum() {
+            velX *= 0.94;
+            if (Math.abs(velX) < 0.4) return;
+            scrollContent.scrollLeft -= velX;
+            momentumFrame = requestAnimationFrame(runMomentum);
+        }
+
+        scrollContent.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            cancelAnimationFrame(momentumFrame);
+            velX = 0;
+            dragStartX    = e.pageX;
+            dragScrollLeft = scrollContent.scrollLeft;
+            lastMouseX    = e.pageX;
+            lastMouseTime = performance.now();
+        });
+
+        function releaseDrag() {
+            if (!isDragging) return;
+            isDragging = false;
+            momentumFrame = requestAnimationFrame(runMomentum);
+        }
+
+        scrollContent.addEventListener('mouseleave', releaseDrag);
+        scrollContent.addEventListener('mouseup',    releaseDrag);
+
+        scrollContent.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            e.preventDefault();
+            const now = performance.now();
+            const dt  = now - lastMouseTime;
+            const dx  = e.pageX - lastMouseX;
+            if (dt > 0) velX = velX * 0.5 + (dx / dt) * 10 * 0.5;
+            scrollContent.scrollLeft = dragScrollLeft - (e.pageX - dragStartX);
+            lastMouseX    = e.pageX;
+            lastMouseTime = now;
+        });
+
+        // Touch — same momentum approach
+        let touchStartX = 0, touchLastX = 0, touchLastTime = 0, touchVelX = 0, touchFrame;
+
+        scrollContent.addEventListener('touchstart', (e) => {
+            cancelAnimationFrame(touchFrame);
+            touchVelX    = 0;
+            touchStartX  = touchLastX = e.touches[0].clientX;
+            touchLastTime = performance.now();
+        });
+
+        scrollContent.addEventListener('touchmove', (e) => {
+            const now = performance.now();
+            const dt  = now - touchLastTime;
+            const dx  = touchLastX - e.touches[0].clientX;
+            if (dt > 0) touchVelX = touchVelX * 0.5 + (dx / dt) * 10 * 0.5;
+            scrollContent.scrollLeft += dx;
+            touchLastX   = e.touches[0].clientX;
+            touchLastTime = now;
+        });
+
+        scrollContent.addEventListener('touchend', () => {
+            function runTouch() {
+                touchVelX *= 0.94;
+                if (Math.abs(touchVelX) < 0.4) return;
+                scrollContent.scrollLeft += touchVelX;
+                touchFrame = requestAnimationFrame(runTouch);
+            }
+            touchFrame = requestAnimationFrame(runTouch);
+        });
+
+        function wireBtn(btn, action) {
+            btn.addEventListener('click', action);
+            btn.addEventListener('touchend', e => { e.preventDefault(); action(); }, {passive: false});
+        }
+
+        wireBtn(scrollLeftBtn,  () => scrollContent.scrollBy({ left: -380, behavior: 'smooth' }));
+        wireBtn(scrollRightBtn, () => scrollContent.scrollBy({ left:  380, behavior: 'smooth' }));
+        wireBtn(fontSmallerBtn, () => {
+            fontScale = Math.max(0.5, fontScale - 0.1);
+            document.body.style.setProperty('--font-scale', fontScale);
+        });
+        wireBtn(fontBiggerBtn, () => {
+            fontScale = Math.min(2, fontScale + 0.1);
+            document.body.style.setProperty('--font-scale', fontScale);
+        });
+
+        // ── Search ────────────────────────────────────────────────────
+        const searchBtn     = document.getElementById('searchBtn');
+        const searchPopup   = document.getElementById('searchPopup');
+        const searchInput   = document.getElementById('searchInput');
+        const searchResults = document.getElementById('searchResults');
+
+        let pagefindModule = null;
+        async function getPagefind() {
+            if (!pagefindModule) {
+                pagefindModule = await import('/pagefind/pagefind.js');
+                await pagefindModule.init();
+            }
+            return pagefindModule;
+        }
+
+        function openSearch() {
+            searchPopup.classList.add('active');
+            searchBtn.classList.add('active');
+            setTimeout(() => searchInput.focus(), 50);
+        }
+
+        function closeSearch() {
+            searchPopup.classList.remove('active');
+            searchBtn.classList.remove('active');
+            searchInput.value = '';
+            searchResults.innerHTML = '';
+        }
+
+        wireBtn(searchBtn, () => {
+            searchPopup.classList.contains('active') ? closeSearch() : openSearch();
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && searchPopup.classList.contains('active')) closeSearch();
+        });
+
+        document.addEventListener('click', (e) => {
+            if (searchPopup.classList.contains('active') &&
+                !searchPopup.contains(e.target) &&
+                !searchBtn.contains(e.target)) {
+                closeSearch();
+            }
+        });
+
+        let searchDebounce;
+        searchInput.addEventListener('input', () => {
+            clearTimeout(searchDebounce);
+            const q = searchInput.value.trim();
+            if (!q) { searchResults.innerHTML = ''; return; }
+            searchResults.innerHTML = '<div class="search-status">Searching…</div>';
+            searchDebounce = setTimeout(async () => {
+                try {
+                    const pf = await getPagefind();
+                    const result = await pf.search(q);
+                    if (!result.results.length) {
+                        searchResults.innerHTML = '<div class="search-status">No results</div>';
+                        return;
+                    }
+                    const items = await Promise.all(result.results.slice(0, 8).map(r => r.data()));
+                    searchResults.innerHTML = items.map(d =>
+                        `<div class="search-result" onclick="window.location.href='${d.url}'">
+                            <div class="search-result-title">${d.meta.title || d.url}</div>
+                            <div class="search-result-excerpt">${d.excerpt}</div>
+                        </div>`
+                    ).join('');
+                } catch {
+                    searchResults.innerHTML = '<div class="search-status">Search index not yet built</div>';
+                }
+            }, 250);
+        });
+        // ─────────────────────────────────────────────────────────────
+
+        function generateDamage() {
+            const damageOverlay = document.getElementById('damageOverlay');
+            damageOverlay.innerHTML = '';
+
+            const damageTypes = [
+                { class: 'age-stain',    count: 4 + Math.floor(Math.random() * 6),  sizeRange: [40, 120]  },
+                { class: 'worm-hole',    count: 6 + Math.floor(Math.random() * 10), sizeRange: [3, 8]     },
+                { class: 'burn-mark',    count: 1 + Math.floor(Math.random() * 3),  sizeRange: [60, 150]  },
+                { class: 'water-damage', count: 2 + Math.floor(Math.random() * 3),  sizeRange: [100, 200] },
+                { class: 'torn-edge',    count: 2 + Math.floor(Math.random() * 3),  sizeRange: [30, 80]   }
+            ];
+
+            damageTypes.forEach(type => {
+                for (let i = 0; i < type.count; i++) {
+                    const damage = document.createElement('div');
+                    damage.className = type.class;
+                    damage.style.left = Math.random() * 100 + '%';
+                    damage.style.top  = Math.random() * 100 + '%';
+                    const size = type.sizeRange[0] + Math.random() * (type.sizeRange[1] - type.sizeRange[0]);
+
+                    if (type.class === 'torn-edge') {
+                        damage.style.width  = size + 'px';
+                        damage.style.height = size * 0.6 + 'px';
+                        damage.style.transform = `rotate(${Math.random() * 360}deg)`;
+                        if (Math.random() > 0.5) {
+                            damage.style.left = (Math.random() > 0.5 ? -5 : 95) + Math.random() * 10 + '%';
+                        } else {
+                            damage.style.top = (Math.random() > 0.5 ? -5 : 95) + Math.random() * 10 + '%';
+                        }
+                    } else {
+                        damage.style.width  = size + 'px';
+                        damage.style.height = size + 'px';
+                    }
+
+                    if (type.class === 'water-damage' || type.class === 'burn-mark') {
+                        damage.style.setProperty('--rotation', Math.random() * 360 + 'deg');
+                    }
+                    if (type.class === 'age-stain') {
+                        damage.style.opacity = 0.4 + Math.random() * 0.3;
+                    }
+                    if (type.class === 'burn-mark') {
+                        damage.style.opacity = 0.5 + Math.random() * 0.3;
+                    }
+
+                    damageOverlay.appendChild(damage);
+                }
+            });
+        }
+
+        displayContent();
+        generateDamage();
+    </script>
+</body>
+</html>

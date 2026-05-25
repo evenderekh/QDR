@@ -1,0 +1,11 @@
+# Old data versions superseded by v1.1
+data/qdr.1.0.*.json
+
+# Build artifacts
+data/qdr.lexicon.coverage_report.txt
+__pycache__/
+*.pyc
+*.pyo
+
+# Empty dirs
+docs/
