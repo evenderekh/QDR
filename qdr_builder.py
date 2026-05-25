@@ -24,8 +24,10 @@ import argparse
 import json
 import re
 import shutil
+import subprocess
 import sys
 import time
+import unicodedata
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
@@ -259,7 +261,7 @@ def wipe_output():
     """Remove generated dirs/files but preserve static/ and any hand-written landing pages."""
     if not OUT.exists():
         return
-    preserve = {'static', 'index.html', 'about', 'privacy', 'terms'}
+    preserve = {'static', 'index.html', 'about', 'privacy', 'terms', 'license', 'pagefind'}
     for item in OUT.iterdir():
         if item.name in preserve:
             continue
@@ -267,6 +269,69 @@ def wipe_output():
             shutil.rmtree(item)
         else:
             item.unlink()
+
+
+def strip_niqqud(text):
+    return ''.join(c for c in unicodedata.normalize('NFD', text) if unicodedata.category(c) != 'Mn')
+
+
+def clean_for_search(text):
+    return re.sub(r'[\[\]#?ε]', '', strip_niqqud(text))
+
+
+def build_search_pages(temp_dir, bib_sorted, nbib_sorted):
+    """Write niqqud-stripped HTML pages to temp_dir for Pagefind.
+    Hebrew text is placed directly in the DOM (not in JS arrays) so Pagefind
+    can index it. data-pagefind-meta sets the canonical URL for each result."""
+    tmp = Path(temp_dir)
+
+    def write_page(scroll, kind):
+        sid = safe_id(scroll['scroll'])
+        canonical = f'/{kind}/{sid}/'
+        verses = group_by_ref(scroll)
+        parts = [
+            '<!DOCTYPE html><html><head><meta charset="UTF-8">',
+            f'<title>{scroll["scroll"]}</title></head><body>',
+            f'<article data-pagefind-body data-pagefind-meta="url:{canonical}">',
+            f'<h1>{scroll["scroll"]}</h1>',
+        ]
+        for v in verses:
+            if not v['words']:
+                continue
+            parts.append(f'<h3>{v["reference"]}</h3>')
+            words = ' '.join(
+                clean_for_search(w[0]) for w in v['words'] if w[0] and w[0].strip()
+            )
+            if words.strip():
+                parts.append(f'<p dir="rtl">{words}</p>')
+        parts.append('</article></body></html>')
+        out_dir = tmp / kind / sid
+        out_dir.mkdir(parents=True, exist_ok=True)
+        (out_dir / 'index.html').write_text('\n'.join(parts), encoding='utf-8')
+
+    for sc in bib_sorted:
+        write_page(sc, 'biblical')
+    for sc in nbib_sorted:
+        write_page(sc, 'non_biblical')
+
+
+def run_pagefind(temp_dir):
+    """Run npx pagefind against temp_dir and copy output to public_html/pagefind/."""
+    cmd = f'npx --yes pagefind --site "{temp_dir}"'
+    result = subprocess.run(cmd, capture_output=True, text=True, shell=True)
+    if result.stdout:
+        print(result.stdout.strip())
+    if result.returncode != 0:
+        print(f'pagefind stderr: {result.stderr[:500]}')
+    pf_src = Path(temp_dir) / 'pagefind'
+    pf_dst = OUT / 'pagefind'
+    if pf_src.exists():
+        if pf_dst.exists():
+            shutil.rmtree(pf_dst)
+        shutil.copytree(pf_src, pf_dst)
+        print('pagefind index written to public_html/pagefind/')
+    else:
+        print('WARNING: pagefind output not found — run: npx pagefind --site qdr/public_html')
 
 
 def load(path):
@@ -277,6 +342,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--scroll', help='build only this scroll (fast iteration)')
     ap.add_argument('--no-wipe', action='store_true', help='skip the wipe-and-rebuild step')
+    ap.add_argument('--no-search', action='store_true', help='skip Pagefind search index rebuild')
     args = ap.parse_args()
 
     t0 = time.time()
@@ -340,6 +406,13 @@ def main():
     if root_src.exists():
         shutil.copy2(root_src, OUT / 'index.html')
         print('copied 1Q1 -> index.html')
+
+    if not args.no_search:
+        import tempfile
+        print('building search index...')
+        with tempfile.TemporaryDirectory() as tmp:
+            build_search_pages(tmp, bib_sorted, nbib_sorted)
+            run_pagefind(tmp)
 
     print(f'wrote {len(written)} pages + sitemap.xml in {time.time()-t0:.1f}s')
     print(f'  biblical scrolls: {len(bib_sorted)}')
