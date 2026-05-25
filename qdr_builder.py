@@ -34,7 +34,7 @@ TEMPLATE_PATH = ROOT / 'template' / 'qdr_template.html'
 LEX_PATH = DATA_DIR / 'qdr.lexicon.json'
 OUT = ROOT / 'public_html'
 SOURCE_VERSION = '1.1'
-SITE_BASE = ''  # empty until domain is decided; sitemap URLs become path-only
+SITE_BASE = 'https://qumran.dev'
 
 CANONICAL_ORDER = {
     'Gen': 1, 'Ex': 2, 'Lev': 3, 'Num': 4, 'Deut': 5,
