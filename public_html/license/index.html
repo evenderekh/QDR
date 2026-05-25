@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta name="author" content="Michael Muzar">
+    <meta name="copyright" content="2026 Michael Muzar">
+    <meta name="license" content="MIT">
+
+    <title>License and Attribution - Qumran Digital Reader (QDR)</title>
+    <meta name="title" content="License and Attribution - Qumran Digital Reader (QDR)">
+    <meta name="description" content="Complete licensing and attribution information for all texts and morphological data used in the Qumran Digital Reader.">
+    <meta name="keywords" content="Dead Sea Scrolls, Qumran, DSS, license, attribution, open source, Abegg, ETCBC">
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+    <meta name="language" content="English">
+    <meta name="rating" content="general">
+
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://qumran.dev/license">
+    <meta property="og:title" content="License and Attribution - Qumran Digital Reader">
+    <meta property="og:description" content="Complete licensing and attribution information for all texts and morphological data used in the Qumran Digital Reader.">
+    <meta property="og:site_name" content="Qumran Digital Reader">
+    <meta property="og:locale" content="en_US">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://qumran.dev/license">
+    <meta name="twitter:title" content="License and Attribution - Qumran Digital Reader">
+    <meta name="twitter:description" content="Complete licensing and attribution information for the Qumran Digital Reader.">
+
+    <link rel="icon" type="image/png" href="/static/icons/favicon.png">
+    <link rel="canonical" href="https://qumran.dev/license">
+    <link rel="license" href="https://opensource.org/licenses/MIT">
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Inter:wght@300;400;500&display=swap');
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background:
+                radial-gradient(ellipse 90% 55% at 50% -5%, rgba(160,110,40,0.38) 0%, transparent 65%),
+                radial-gradient(ellipse 55% 45% at 8% 65%, rgba(90,58,18,0.22) 0%, transparent 55%),
+                radial-gradient(ellipse 55% 45% at 92% 65%, rgba(90,58,18,0.22) 0%, transparent 55%),
+                linear-gradient(180deg, #1c1510 0%, #201810 40%, #1a1410 70%, #130f08 100%);
+            background-attachment: fixed;
+            min-height: 100vh;
+            color: #f4f1e8;
+        }
+
+        .top-bar {
+            background: linear-gradient(180deg, rgba(36,27,17,0.98) 0%, rgba(22,16,10,0.97) 100%);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(218,165,32,0.35);
+            padding: 1rem 2rem;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.65), 0 1px 0 rgba(218,165,32,0.12);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .top-bar-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .top-bar-logo {
+            font-family: 'Cinzel', serif;
+            font-size: 1.4rem;
+            color: #DAA520;
+            text-decoration: none;
+            text-shadow: 0 0 20px rgba(218,165,32,0.3);
+        }
+
+        .nav-links { display: flex; gap: 2rem; }
+
+        .nav-links a {
+            color: #C4B5A0;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover { color: #DAA520; }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+        }
+
+        .navigation { text-align: center; margin-bottom: 2rem; }
+
+        .nav-link {
+            display: inline-block;
+            background: rgba(218,165,32,0.08);
+            color: #DAA520;
+            text-decoration: none;
+            padding: 0.8rem 2rem;
+            border-radius: 6px;
+            border: 1px solid rgba(218,165,32,0.3);
+            transition: all 0.2s ease;
+            font-family: 'Cinzel', serif;
+            font-size: 0.85rem;
+        }
+
+        .nav-link:hover {
+            background: rgba(218,165,32,0.15);
+            border-color: rgba(218,165,32,0.55);
+            transform: translateY(-1px);
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid rgba(218,165,32,0.2);
+        }
+
+        .page-header h1 {
+            font-family: 'Cinzel', serif;
+            font-size: 2.4rem;
+            color: #DAA520;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 0 40px rgba(218,165,32,0.25);
+        }
+
+        .page-header p {
+            color: #C4B5A0;
+            font-size: 1.1rem;
+            font-style: italic;
+        }
+
+        .content {
+            background: rgba(30,20,10,0.75);
+            border: 1px solid rgba(218,165,32,0.18);
+            border-radius: 8px;
+            padding: 3rem;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(8px);
+        }
+
+        .content h2 {
+            font-family: 'Cinzel', serif;
+            color: #DAA520;
+            font-size: 1.5rem;
+            margin: 2.5rem 0 1rem 0;
+        }
+
+        .content h2:first-of-type { margin-top: 0; }
+
+        .content p {
+            margin-bottom: 1.2rem;
+            color: #f4f1e8;
+            line-height: 1.75;
+        }
+
+        .content a { color: #8a7040; text-decoration: none; }
+        .content a:hover { color: #DAA520; text-decoration: underline; }
+        .content strong { color: #DAA520; font-weight: 600; }
+
+        .source-card {
+            background: rgba(20,13,5,0.6);
+            border: 1px solid rgba(218,165,32,0.22);
+            border-radius: 8px;
+            padding: 2rem;
+            margin: 1.5rem 0;
+            transition: border-color 0.2s ease;
+        }
+
+        .source-card:hover {
+            border-color: rgba(218,165,32,0.45);
+        }
+
+        .source-title {
+            font-family: 'Cinzel', serif;
+            color: #DAA520;
+            font-size: 1.15rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.9rem;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            font-family: 'Inter', sans-serif;
+            font-size: 0.72rem;
+            padding: 0.2rem 0.6rem;
+            border-radius: 10px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-mit      { background: rgba(218,165,32,0.15); color: #DAA520; }
+        .badge-cc-nc    { background: rgba(200,90,40,0.18);  color: #d0834a; }
+        .badge-cc-by    { background: rgba(100,160,100,0.18); color: #7aba7a; }
+        .badge-pd       { background: rgba(150,150,180,0.18); color: #a0a0c8; }
+
+        .license-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.2rem;
+            margin: 1rem 0 1.2rem 0;
+        }
+
+        .license-cell {
+            background: rgba(10,6,2,0.5);
+            border: 1px solid rgba(218,165,32,0.12);
+            border-radius: 6px;
+            padding: 1rem;
+        }
+
+        .license-cell h4 {
+            color: #DAA520;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .license-cell p {
+            color: #C4B5A0;
+            font-size: 0.88rem;
+            line-height: 1.6;
+            margin-bottom: 0;
+        }
+
+        .citation-box {
+            background: rgba(218,165,32,0.06);
+            border: 1px solid rgba(218,165,32,0.2);
+            border-radius: 6px;
+            padding: 1rem 1.2rem;
+            margin-top: 1rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.82rem;
+            color: #C4B5A0;
+            line-height: 1.65;
+            overflow-x: auto;
+        }
+
+        .citation-box strong { color: #DAA520; font-family: 'Inter', sans-serif; }
+
+        .footer {
+            background: rgba(28,18,10,0.92);
+            border-top: 1px solid rgba(218,165,32,0.15);
+            padding: 1rem 2rem;
+            text-align: center;
+            color: #555;
+            font-size: 0.8rem;
+            margin-top: 3rem;
+        }
+
+        .footer a { color: #8a7040; text-decoration: none; }
+        .footer a:hover { color: #DAA520; }
+
+        @media (max-width: 768px) {
+            .container { padding: 2rem 1rem; }
+            .content { padding: 2rem; }
+            .page-header h1 { font-size: 1.8rem; }
+            .nav-links { display: none; }
+            .license-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="top-bar">
+        <div class="top-bar-nav">
+            <a href="/" class="top-bar-logo">QDR</a>
+            <div class="nav-links">
+                <a href="/">Reader</a>
+                <a href="/about">About</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="navigation">
+            <a href="/" class="nav-link">← Back to QDR</a>
+        </div>
+
+        <div class="page-header">
+            <h1>License and Attribution</h1>
+            <p>Complete source documentation and licensing information</p>
+        </div>
+
+        <div class="content">
+
+            <h2>Platform License</h2>
+            <p>The Qumran Digital Reader platform software is © 2026 Michael Muzar and released under the <strong>MIT License</strong>. This includes the site builder, HTML template, morphological decoder, and all interface code.</p>
+
+            <div class="citation-box">
+                <strong>Platform Attribution:</strong><br>
+                Qumran Digital Reader (QDR) © 2026 Michael Muzar.<br>
+                Released under MIT License.<br>
+                Source: https://github.com/evenderekh/qdr
+            </div>
+
+            <h2>Text and Morphology Sources</h2>
+            <p>QDR presents text and morphological data drawn from the following upstream sources. Each carries its own license; redistribution of this site must respect all of them.</p>
+
+            <!-- DSS Corpus -->
+            <div class="source-card">
+                <div class="source-title">
+                    Dead Sea Scrolls Corpus (ETCBC/Abegg)
+                    <span class="badge badge-cc-nc">CC-BY-NC 4.0</span>
+                </div>
+
+                <div class="license-grid">
+                    <div class="license-cell">
+                        <h4>Text &amp; Morphology</h4>
+                        <p><strong>Dead Sea Scrolls in Text-Fabric Format</strong><br>
+                        Based on Martin Abegg's transcriptions, processed by ETCBC.<br>
+                        Covers 266 biblical scrolls, 735 non-biblical texts.</p>
+                    </div>
+                    <div class="license-cell">
+                        <h4>License</h4>
+                        <p><strong>Creative Commons Attribution-NonCommercial 4.0</strong><br>
+                        Non-commercial use only. Attribution required.<br>
+                        Commercial redistribution is prohibited.</p>
+                    </div>
+                </div>
+
+                <div class="citation-box">
+                    <strong>Required Attribution:</strong><br>
+                    Naaijer, M., &amp; Roorda, D. (2019).<br>
+                    Dead Sea Scrolls in TF format based on Abegg's data [Dataset].<br>
+                    ETCBC. https://github.com/ETCBC/dss<br>
+                    License: CC-BY-NC 4.0
+                </div>
+            </div>
+
+            <h2>Lexical Sources</h2>
+            <p>The linguistic panel draws definitions from three sources in order of preference: THB → Strong's → BDB. The panel labels which source it is quoting.</p>
+
+            <!-- THB Definitions -->
+            <div class="source-card">
+                <div class="source-title">
+                    THB Curated Definitions
+                    <span class="badge badge-mit">MIT</span>
+                </div>
+
+                <div class="license-grid">
+                    <div class="license-cell">
+                        <h4>Source</h4>
+                        <p><strong>Translator's Hebrew Bible Lexicon</strong><br>
+                        Curated Hebrew definitions maintained by the THB project for use across QDR and THB.</p>
+                    </div>
+                    <div class="license-cell">
+                        <h4>License</h4>
+                        <p><strong>MIT License</strong><br>
+                        © 2026 Michael Muzar.<br>
+                        Free to use, modify, and redistribute.</p>
+                    </div>
+                </div>
+
+                <div class="citation-box">
+                    <strong>Source:</strong><br>
+                    Muzar, M. (2026). Translator's Hebrew Bible (THB) lexicon [Dataset].<br>
+                    https://github.com/evenderekh/thb<br>
+                    License: MIT
+                </div>
+            </div>
+
+            <!-- Strong's -->
+            <div class="source-card">
+                <div class="source-title">
+                    Strong's Hebrew Concordance
+                    <span class="badge badge-pd">Public Domain</span>
+                </div>
+
+                <div class="license-grid">
+                    <div class="license-cell">
+                        <h4>Source</h4>
+                        <p><strong>Strong's Hebrew XML — openscriptures</strong><br>
+                        Digitised edition of James Strong's <em>Exhaustive Concordance</em> (1890) by Troidl &amp; Instone-Brewer.</p>
+                    </div>
+                    <div class="license-cell">
+                        <h4>License</h4>
+                        <p><strong>Public Domain</strong><br>
+                        Original 1890 work and digital edition are in the public domain.</p>
+                    </div>
+                </div>
+
+                <div class="citation-box">
+                    <strong>Source:</strong><br>
+                    Troidl, R. &amp; Instone-Brewer, D. Strong's Hebrew XML.<br>
+                    https://github.com/openscriptures/strongs<br>
+                    Public Domain
+                </div>
+            </div>
+
+            <!-- BDB -->
+            <div class="source-card">
+                <div class="source-title">
+                    Brown-Driver-Briggs Hebrew Lexicon (BDB Enhanced)
+                    <span class="badge badge-pd">Public Domain</span>
+                    <span class="badge badge-cc-by">CC-BY 4.0</span>
+                </div>
+
+                <div class="license-grid">
+                    <div class="license-cell">
+                        <h4>Source</h4>
+                        <p><strong>unfoldingWord BDB Enhanced</strong><br>
+                        Enhanced digital edition of Brown, Driver &amp; Briggs <em>Hebrew and English Lexicon</em> (1906).<br>
+                        Enhanced by Ruark, R., de Joode, J., Ku, M., &amp; Wong, E.</p>
+                    </div>
+                    <div class="license-cell">
+                        <h4>License</h4>
+                        <p><strong>Original (1906): Public Domain</strong><br>
+                        <strong>Enhancements: CC-BY 4.0</strong><br>
+                        Attribution required for the enhanced digital edition.</p>
+                    </div>
+                </div>
+
+                <div class="citation-box">
+                    <strong>Required Attribution:</strong><br>
+                    Brown, F., Driver, S. R., &amp; Briggs, C. A. (1906). <em>A Hebrew and English Lexicon.</em><br>
+                    Enhanced digital edition: Ruark, R., de Joode, J., Ku, M., &amp; Wong, E. for unfoldingWord.<br>
+                    https://github.com/unfoldingWord/Brown-Driver-Briggs-Enhanced<br>
+                    License: CC-BY 4.0
+                </div>
+            </div>
+
+            <h2>Usage and Redistribution</h2>
+            <p>The QDR platform (MIT) may be freely used, modified, and redistributed. The underlying DSS corpus (CC-BY-NC 4.0) prohibits commercial redistribution — this restriction applies regardless of the platform license. Non-commercial use of the corpus requires attribution to Naaijer, Roorda, and the ETCBC.</p>
+
+            <p>For academic research, cite primary sources and critical editions directly. QDR is a reading tool, not a substitute for authoritative scholarship.</p>
+
+            <p>Licensing questions: <span id="contact-link" style="cursor:pointer;color:#8a7040;">Contact</span></p>
+
+        </div>
+    </div>
+
+    <footer class="footer">
+        © 2026 Michael Muzar.&nbsp;<a href="https://github.com/evenderekh/qdr" target="_blank" rel="noopener" aria-label="GitHub"><img src="/static/github-logo-small.png" alt="GitHub" style="width:14px;height:14px;vertical-align:middle;opacity:0.5;margin:0 5px;"></a>&nbsp;<a href="/license">LICENSE</a>&nbsp;·&nbsp;<a href="/about">About</a>&nbsp;·&nbsp;<span id="footer-contact" style="cursor:pointer;color:#8a7040;">Contact</span>&nbsp;·&nbsp;<a href="/privacy">Privacy</a>&nbsp;·&nbsp;<a href="/terms">Terms</a>
+    </footer>
+
+    <script>
+        function revealContact(el) {
+            el.textContent = 'support AT qumran.dev';
+            el.style.cursor = 'default';
+        }
+        document.getElementById('contact-link').addEventListener('click', function() { revealContact(this); });
+        document.getElementById('footer-contact').addEventListener('click', function() { revealContact(this); });
+    </script>
+</body>
+</html>

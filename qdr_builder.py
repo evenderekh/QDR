@@ -402,10 +402,22 @@ def main():
 
     write_sitemap(written)
 
-    root_src = OUT / 'biblical' / '1Q1' / 'index.html'
-    if root_src.exists():
-        shutil.copy2(root_src, OUT / 'index.html')
-        print('copied 1Q1 -> index.html')
+    # Re-render 1Q1 for the root page with absolute next link.
+    # A direct copy of biblical/1Q1/index.html would have a relative next link
+    # (../1Q2/) that resolves correctly from /biblical/1Q1/ but breaks at /.
+    first = bib_sorted[0]
+    second = bib_sorted[1] if len(bib_sorted) > 1 else None
+    root_next = f'/biblical/{safe_id(second["scroll"])}/' if second else '#'
+    root_nav = json.dumps({
+        'type': 'biblical', 'mode': 'cave', 'cave': cave_prefix(first['scroll']),
+        'scroll': first['scroll'], 'url': f'/biblical/{safe_id(first["scroll"])}/',
+    })
+    root_html = fill_template(
+        template, first['scroll'], '#', root_next,
+        hebrew_data_js(group_by_ref(first)), root_nav,
+    )
+    (OUT / 'index.html').write_text(root_html, encoding='utf-8')
+    print('wrote root index.html (1Q1, absolute nav links)')
 
     if not args.no_search:
         import tempfile
