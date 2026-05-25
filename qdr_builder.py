@@ -336,6 +336,11 @@ def main():
 
     write_sitemap(written)
 
+    root_src = OUT / 'biblical' / '1Q1' / 'index.html'
+    if root_src.exists():
+        shutil.copy2(root_src, OUT / 'index.html')
+        print('copied 1Q1 -> index.html')
+
     print(f'wrote {len(written)} pages + sitemap.xml in {time.time()-t0:.1f}s')
     print(f'  biblical scrolls: {len(bib_sorted)}')
     print(f'  non-biblical scrolls: {len(nbib_sorted)}')

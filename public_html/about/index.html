@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta name="author" content="Michael Muzar">
+    <meta name="copyright" content="2026 Michael Muzar">
+    <meta name="license" content="MIT">
+
+    <title>About - Qumran Digital Reader (QDR)</title>
+    <meta name="title" content="About - Qumran Digital Reader (QDR)">
+    <meta name="description" content="About the Qumran Digital Reader — a free, open, static-site reader for the Dead Sea Scrolls with word-level morphological analysis.">
+    <meta name="keywords" content="Dead Sea Scrolls, Qumran, DSS, morphological analysis, Hebrew, biblical manuscripts, non-biblical scrolls">
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+    <meta name="language" content="English">
+    <meta name="rating" content="general">
+
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://qumran.dev/about">
+    <meta property="og:title" content="About - Qumran Digital Reader">
+    <meta property="og:description" content="About the Qumran Digital Reader — a free, open, static-site reader for the Dead Sea Scrolls.">
+    <meta property="og:site_name" content="Qumran Digital Reader">
+    <meta property="og:locale" content="en_US">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://qumran.dev/about">
+    <meta name="twitter:title" content="About - Qumran Digital Reader">
+    <meta name="twitter:description" content="About the Qumran Digital Reader — a free, open, static-site reader for the Dead Sea Scrolls.">
+
+    <link rel="icon" type="image/png" href="/static/icons/favicon.png">
+    <link rel="canonical" href="https://qumran.dev/about">
+    <link rel="license" href="https://opensource.org/licenses/MIT">
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Inter:wght@300;400;500&display=swap');
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background:
+                radial-gradient(ellipse 90% 55% at 50% -5%, rgba(160,110,40,0.38) 0%, transparent 65%),
+                radial-gradient(ellipse 55% 45% at 8% 65%, rgba(90,58,18,0.22) 0%, transparent 55%),
+                radial-gradient(ellipse 55% 45% at 92% 65%, rgba(90,58,18,0.22) 0%, transparent 55%),
+                linear-gradient(180deg, #1c1510 0%, #201810 40%, #1a1410 70%, #130f08 100%);
+            background-attachment: fixed;
+            min-height: 100vh;
+            color: #f4f1e8;
+        }
+
+        .top-bar {
+            background: linear-gradient(180deg, rgba(36,27,17,0.98) 0%, rgba(22,16,10,0.97) 100%);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(218,165,32,0.35);
+            padding: 1rem 2rem;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.65), 0 1px 0 rgba(218,165,32,0.12);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .top-bar-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .top-bar-logo {
+            font-family: 'Cinzel', serif;
+            font-size: 1.4rem;
+            color: #DAA520;
+            text-decoration: none;
+            text-shadow: 0 0 20px rgba(218,165,32,0.3);
+        }
+
+        .nav-links { display: flex; gap: 2rem; }
+
+        .nav-links a {
+            color: #C4B5A0;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover { color: #DAA520; }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+        }
+
+        .navigation { text-align: center; margin-bottom: 2rem; }
+
+        .nav-link {
+            display: inline-block;
+            background: rgba(218,165,32,0.08);
+            color: #DAA520;
+            text-decoration: none;
+            padding: 0.8rem 2rem;
+            border-radius: 6px;
+            border: 1px solid rgba(218,165,32,0.3);
+            transition: all 0.2s ease;
+            font-family: 'Cinzel', serif;
+            font-size: 0.85rem;
+        }
+
+        .nav-link:hover {
+            background: rgba(218,165,32,0.15);
+            border-color: rgba(218,165,32,0.55);
+            transform: translateY(-1px);
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid rgba(218,165,32,0.2);
+        }
+
+        .page-header h1 {
+            font-family: 'Cinzel', serif;
+            font-size: 2.4rem;
+            color: #DAA520;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 0 40px rgba(218,165,32,0.25);
+        }
+
+        .page-header p {
+            color: #C4B5A0;
+            font-size: 1.1rem;
+            font-style: italic;
+        }
+
+        .content {
+            background: rgba(30,20,10,0.75);
+            border: 1px solid rgba(218,165,32,0.18);
+            border-radius: 8px;
+            padding: 3rem;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(8px);
+        }
+
+        .content h2 {
+            font-family: 'Cinzel', serif;
+            color: #DAA520;
+            font-size: 1.5rem;
+            margin: 2.5rem 0 1rem 0;
+        }
+
+        .content h2:first-of-type { margin-top: 0; }
+
+        .content p {
+            margin-bottom: 1.4rem;
+            color: #f4f1e8;
+            line-height: 1.75;
+        }
+
+        .content a { color: #8a7040; text-decoration: none; }
+        .content a:hover { color: #DAA520; text-decoration: underline; }
+        .content strong { color: #DAA520; font-weight: 600; }
+
+        .content ul {
+            margin-bottom: 1.4rem;
+            padding-left: 2rem;
+        }
+
+        .content li {
+            margin-bottom: 0.5rem;
+            color: #f4f1e8;
+            line-height: 1.65;
+        }
+
+        .footer {
+            background: rgba(28,18,10,0.92);
+            border-top: 1px solid rgba(218,165,32,0.15);
+            padding: 1rem 2rem;
+            text-align: center;
+            color: #555;
+            font-size: 0.8rem;
+            margin-top: 3rem;
+        }
+
+        .footer a { color: #8a7040; text-decoration: none; }
+        .footer a:hover { color: #DAA520; }
+
+        @media (max-width: 768px) {
+            .container { padding: 2rem 1rem; }
+            .content { padding: 2rem; }
+            .page-header h1 { font-size: 1.8rem; }
+            .nav-links { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="top-bar">
+        <div class="top-bar-nav">
+            <a href="/" class="top-bar-logo">QDR</a>
+            <div class="nav-links">
+                <a href="/">Reader</a>
+                <a href="/about">About</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="navigation">
+            <a href="/" class="nav-link">← Back to QDR</a>
+        </div>
+
+        <div class="page-header">
+            <h1>About the Qumran Digital Reader</h1>
+            <p>Free, open, static-site reader for the Dead Sea Scrolls</p>
+        </div>
+
+        <div class="content">
+            <p>The Qumran Digital Reader (QDR) lets you read the Dead Sea Scrolls in Hebrew exactly as they were written — fragment by fragment, line by line. Hover any word to see full morphological analysis and lexical definitions drawn from three reference sources. No accounts, no subscriptions, no server.</p>
+
+            <h2>The Scrolls</h2>
+
+            <p><strong>Biblical scrolls</strong> — the 266 scrolls from Qumran that overlap with the Hebrew Bible, ranging from a complete Isaiah scroll (1QIsaᵃ) to single-verse fragments. These are the oldest surviving witnesses to many biblical books, predating the Masoretic Text by a millennium. QDR presents them by cave, by scroll, and where relevant by canonical book — so you can read every Qumran witness to Genesis with its fragment and line context intact.</p>
+
+            <p><strong>Non-biblical scrolls</strong> — the sectarian, liturgical, and wisdom texts unique to the Qumran community: the Rule of the Community (1QS), Damascus Document (CD), Hodayot (1QH), War Scroll (1QM), pesharim, and more. These have no biblical parallel. They are the library of a community, read here in the same interface.</p>
+
+            <h2>Morphological Analysis</h2>
+
+            <p>Hover any word and the linguistic panel opens: root, part of speech, and a full morphological parse — verb stem, aspect, conjugation, gender, number, person, state — decoded from Martin Abegg's transcriptions without abbreviations. Click to lock the panel open while you work through a passage.</p>
+
+            <p>Lexical definitions are drawn from three sources in order of preference: THB definitions (curated for the scrolls), Strong's Hebrew concordance, and the Brown-Driver-Briggs lexicon. The panel labels which source it is quoting.</p>
+
+            <h2>Three Scripts</h2>
+
+            <p>The scrolls were written in three scripts. QDR renders all three: <strong>Scroll Hebrew</strong> (the 4Q416jan font approximating the Qumran scribal hand), <strong>Paleo-Hebrew</strong> (the Phoenician-derived script used in some scrolls, especially for the divine name), and <strong>Modern Square Hebrew</strong> (Noto Sans Hebrew). The Tetragrammaton renders in paleo script whenever Scroll mode is active — because that is how it appears in the scrolls.</p>
+
+            <h2>Design Philosophy</h2>
+
+            <p><strong>Open access.</strong> No institutional affiliation required. No paywall. The scrolls belong to scholarship, not to a subscription tier.</p>
+
+            <p><strong>Static by design.</strong> QDR is built once and served forever. No server, no runtime database, no moving parts. Every page is a plain HTML file.</p>
+
+            <p><strong>Fragment fidelity.</strong> The old approach to DSS digitization stitched fragments together into synthetic wholes. QDR preserves the physical structure of each scroll: cave → fragment → line. You see what survives, not a reconstruction of what might have been.</p>
+
+            <h2>Data Source</h2>
+
+            <p>Text and morphological data are drawn from the <a href="https://github.com/ETCBC/dss" target="_blank" rel="noopener">ETCBC Dead Sea Scrolls corpus</a> (Naaijer &amp; Roorda, 2019), based on Martin Abegg's transcriptions. The corpus covers 2,308 biblical fragments across 266 scrolls and the full non-biblical collection. Full attribution on the <a href="/license">License page</a>.</p>
+
+            <h2>About the Author</h2>
+
+            <p>QDR was built by <strong>Michael Muzar</strong>.</p>
+        </div>
+    </div>
+
+    <footer class="footer">
+        © 2026 Michael Muzar.&nbsp;<a href="https://github.com/evenderekh/qdr" target="_blank" rel="noopener" aria-label="GitHub"><img src="/static/github-logo-small.png" alt="GitHub" style="width:14px;height:14px;vertical-align:middle;opacity:0.5;margin:0 5px;"></a>&nbsp;<a href="/license">LICENSE</a>&nbsp;·&nbsp;<a href="/about">About</a>&nbsp;·&nbsp;<span id="contact-link" style="cursor:pointer;color:#8a7040;">Contact</span>&nbsp;·&nbsp;<a href="/privacy">Privacy</a>&nbsp;·&nbsp;<a href="/terms">Terms</a>
+    </footer>
+
+    <script>
+        document.getElementById('contact-link').addEventListener('click', function() {
+            this.textContent = 'support AT qumran.dev';
+            this.style.cursor = 'default';
+        });
+    </script>
+</body>
+</html>

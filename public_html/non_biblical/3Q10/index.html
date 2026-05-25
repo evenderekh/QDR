@@ -882,7 +882,7 @@
 
     <!-- Header -->
     <div class="header">
-        <h1><a href="../index2.html">Qumran Digital Reader (QDR)</h1></a>
+        <h1><a href="/">Qumran Digital Reader (QDR)</h1></a>
         <div class="scroll-info">
             <div class="scroll-nav">
                 <a href="../3Q9/"><span class="nav-arrow prev-scroll">&larr;</span></a>
@@ -1010,6 +1010,14 @@
             function buildScroll(type, cave, selectUrl) {
                 const scrolls = (QDR_NAV[type].caves[cave] || []);
                 navScroll.innerHTML = '';
+                if (!selectUrl) {
+                    const placeholder = document.createElement('option');
+                    placeholder.value = '';
+                    placeholder.disabled = true;
+                    placeholder.selected = true;
+                    placeholder.textContent = '—';
+                    navScroll.appendChild(placeholder);
+                }
                 scrolls.forEach(sc => {
                     const o = document.createElement('option');
                     o.value = sc.url;

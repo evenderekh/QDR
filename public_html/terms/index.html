@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta name="author" content="Michael Muzar">
+    <meta name="copyright" content="2026 Michael Muzar">
+    <meta name="license" content="MIT">
+
+    <title>Terms of Service - Qumran Digital Reader (QDR)</title>
+    <meta name="title" content="Terms of Service - Qumran Digital Reader (QDR)">
+    <meta name="description" content="Terms of Service for the Qumran Digital Reader — free, open, static-site Dead Sea Scrolls reader.">
+    <meta name="keywords" content="Qumran Digital Reader, terms of service, Dead Sea Scrolls, legal">
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+    <meta name="language" content="English">
+    <meta name="rating" content="general">
+
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://qumran.dev/terms">
+    <meta property="og:title" content="Terms of Service - Qumran Digital Reader">
+    <meta property="og:description" content="Terms of Service for the Qumran Digital Reader.">
+    <meta property="og:site_name" content="Qumran Digital Reader">
+    <meta property="og:locale" content="en_US">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://qumran.dev/terms">
+    <meta name="twitter:title" content="Terms of Service - Qumran Digital Reader">
+    <meta name="twitter:description" content="Terms of Service for the Qumran Digital Reader.">
+
+    <link rel="icon" type="image/png" href="/static/icons/favicon.png">
+    <link rel="canonical" href="https://qumran.dev/terms">
+    <link rel="license" href="https://opensource.org/licenses/MIT">
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Inter:wght@300;400;500&display=swap');
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background:
+                radial-gradient(ellipse 90% 55% at 50% -5%, rgba(160,110,40,0.38) 0%, transparent 65%),
+                radial-gradient(ellipse 55% 45% at 8% 65%, rgba(90,58,18,0.22) 0%, transparent 55%),
+                radial-gradient(ellipse 55% 45% at 92% 65%, rgba(90,58,18,0.22) 0%, transparent 55%),
+                linear-gradient(180deg, #1c1510 0%, #201810 40%, #1a1410 70%, #130f08 100%);
+            background-attachment: fixed;
+            min-height: 100vh;
+            color: #f4f1e8;
+        }
+
+        .top-bar {
+            background: linear-gradient(180deg, rgba(36,27,17,0.98) 0%, rgba(22,16,10,0.97) 100%);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(218,165,32,0.35);
+            padding: 1rem 2rem;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.65), 0 1px 0 rgba(218,165,32,0.12);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .top-bar-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .top-bar-logo {
+            font-family: 'Cinzel', serif;
+            font-size: 1.4rem;
+            color: #DAA520;
+            text-decoration: none;
+            text-shadow: 0 0 20px rgba(218,165,32,0.3);
+        }
+
+        .nav-links { display: flex; gap: 2rem; }
+
+        .nav-links a {
+            color: #C4B5A0;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover { color: #DAA520; }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+        }
+
+        .navigation { text-align: center; margin-bottom: 2rem; }
+
+        .nav-link {
+            display: inline-block;
+            background: rgba(218,165,32,0.08);
+            color: #DAA520;
+            text-decoration: none;
+            padding: 0.8rem 2rem;
+            border-radius: 6px;
+            border: 1px solid rgba(218,165,32,0.3);
+            transition: all 0.2s ease;
+            font-family: 'Cinzel', serif;
+            font-size: 0.85rem;
+        }
+
+        .nav-link:hover {
+            background: rgba(218,165,32,0.15);
+            border-color: rgba(218,165,32,0.55);
+            transform: translateY(-1px);
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid rgba(218,165,32,0.2);
+        }
+
+        .page-header h1 {
+            font-family: 'Cinzel', serif;
+            font-size: 2.4rem;
+            color: #DAA520;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 0 40px rgba(218,165,32,0.25);
+        }
+
+        .page-header p {
+            color: #C4B5A0;
+            font-size: 1.1rem;
+            font-style: italic;
+        }
+
+        .content {
+            background: rgba(30,20,10,0.75);
+            border: 1px solid rgba(218,165,32,0.18);
+            border-radius: 8px;
+            padding: 3rem;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(8px);
+        }
+
+        .content h2 {
+            font-family: 'Cinzel', serif;
+            color: #DAA520;
+            font-size: 1.3rem;
+            margin: 2rem 0 0.8rem 0;
+        }
+
+        .content h2:first-of-type { margin-top: 0; }
+
+        .content p {
+            margin-bottom: 1rem;
+            color: #f4f1e8;
+            line-height: 1.75;
+        }
+
+        .content ul {
+            margin-bottom: 1rem;
+            padding-left: 2rem;
+        }
+
+        .content li {
+            margin-bottom: 0.4rem;
+            color: #f4f1e8;
+            line-height: 1.65;
+        }
+
+        .content a { color: #8a7040; text-decoration: none; }
+        .content a:hover { color: #DAA520; text-decoration: underline; }
+        .content strong { color: #DAA520; font-weight: 600; }
+        .content em { color: #C4B5A0; font-style: italic; }
+
+        .effective-date {
+            text-align: center;
+            color: #C4B5A0;
+            font-style: italic;
+            margin-bottom: 2rem;
+            font-size: 0.95rem;
+            line-height: 1.8;
+        }
+
+        .footer {
+            background: rgba(28,18,10,0.92);
+            border-top: 1px solid rgba(218,165,32,0.15);
+            padding: 1rem 2rem;
+            text-align: center;
+            color: #555;
+            font-size: 0.8rem;
+            margin-top: 3rem;
+        }
+
+        .footer a { color: #8a7040; text-decoration: none; }
+        .footer a:hover { color: #DAA520; }
+
+        @media (max-width: 768px) {
+            .container { padding: 2rem 1rem; }
+            .content { padding: 2rem; }
+            .page-header h1 { font-size: 1.8rem; }
+            .nav-links { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="top-bar">
+        <div class="top-bar-nav">
+            <a href="/" class="top-bar-logo">QDR</a>
+            <div class="nav-links">
+                <a href="/">Reader</a>
+                <a href="/about">About</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="navigation">
+            <a href="/" class="nav-link">← Back to QDR</a>
+        </div>
+
+        <div class="page-header">
+            <h1>Terms of Service</h1>
+            <p>Qumran Digital Reader</p>
+        </div>
+
+        <div class="content">
+            <div class="effective-date">
+                <strong>Effective Date:</strong> May 24, 2026<br>
+                <strong>Service:</strong> qumran.dev
+            </div>
+
+            <h2>1. Acceptance of Terms</h2>
+            <p>By accessing or using the Qumran Digital Reader (QDR) service at qumran.dev ("Service"), you agree to be bound by these Terms of Service ("Terms"). If you do not agree to these Terms, you may not use the Service.</p>
+
+            <h2>2. Description of Service</h2>
+            <p>The Qumran Digital Reader is a free, open, static-site reader for the Dead Sea Scrolls, presenting both biblical and non-biblical texts from the Qumran corpus with word-level morphological analysis and lexical definitions. The Service is operated by Michael Muzar.</p>
+
+            <h2>3. Intellectual Property and Licensing</h2>
+            <ul>
+                <li>The Qumran Digital Reader platform software is © 2026 Michael Muzar</li>
+                <li>The Service is released under the MIT License</li>
+                <li>Source materials are individually attributed on the <a href="/license">License page</a>; each carries its own license terms</li>
+                <li>You may use, modify, and distribute the platform software under the terms of the MIT License</li>
+                <li>The underlying DSS corpus (ETCBC/Abegg) is licensed CC-BY-NC 4.0 — non-commercial use only</li>
+            </ul>
+
+            <h2>4. Disclaimer of Accuracy</h2>
+            <p><strong>THE SERVICE IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND. NO CLAIMS OF ACCURACY, COMPLETENESS, OR RELIABILITY ARE MADE REGARDING THE CONTENT, TRANSCRIPTIONS, MORPHOLOGICAL ANALYSIS, OR INTERPRETATIONS PROVIDED.</strong></p>
+            <p><strong>Scholarly Responsibility:</strong> Users should consult primary sources and authoritative critical editions for formal scholarly research. QDR is intended as a research tool, not a substitute for rigorous academic methodology.</p>
+
+            <h2>5. Data and Privacy</h2>
+            <p>QDR does not collect personal data. The Service uses browser local storage exclusively to save your script preference on your device. No tracking, analytics, or data collection systems are implemented by this Service. See our <a href="/privacy">Privacy Policy</a> for complete details.</p>
+
+            <h2>6. Limitation of Liability</h2>
+            <p><strong>TO THE MAXIMUM EXTENT PERMITTED BY LAW:</strong></p>
+            <ul>
+                <li><strong>THE OPERATOR ASSUMES ZERO LIABILITY</strong> for any damages, losses, or issues arising from use of the Service</li>
+                <li><strong>YOU USE THE SERVICE AT YOUR OWN RISK</strong></li>
+                <li><strong>THE OPERATOR SHALL NOT BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES</strong> arising from your use of the Service</li>
+                <li><strong>NO WARRANTY IS PROVIDED</strong> regarding the accuracy of transcriptions, morphological analysis, or lexical definitions</li>
+            </ul>
+
+            <h2>7. User Conduct</h2>
+            <p>Users are expected to:</p>
+            <ul>
+                <li>Use the Service for legitimate educational, research, or personal study purposes</li>
+                <li>Comply with applicable laws and regulations</li>
+                <li>Respect the non-commercial licensing terms of the underlying DSS corpus (CC-BY-NC 4.0)</li>
+                <li>Not attempt to reverse engineer, compromise, or interfere with the Service's operation</li>
+                <li>Not use automated tools to scrape or download large portions of the content</li>
+            </ul>
+
+            <h2>8. Academic Use and Attribution</h2>
+            <p>When using QDR for academic research or publication:</p>
+            <ul>
+                <li>Cite primary sources and critical editions, not QDR itself, for textual evidence</li>
+                <li>Acknowledge QDR as a research tool if it significantly aided your work</li>
+                <li>Verify all transcription and morphological data against authoritative sources</li>
+                <li>Follow standard academic protocols for Dead Sea Scrolls scholarship</li>
+            </ul>
+
+            <h2>9. Service Availability</h2>
+            <p>While QDR is designed for reliability and long-term availability as a static site, the operator makes no guarantees regarding continuous availability, absence of technical errors, or long-term preservation of the Service.</p>
+
+            <h2>10. Right to Terminate Access</h2>
+            <p>The operator reserves the right to terminate or restrict access to the Service at any time, for any reason, without notice.</p>
+
+            <h2>11. Modifications to Terms</h2>
+            <p>These Terms may be updated at any time without prior notice. Continued use of the Service constitutes acceptance of modified Terms. Users are responsible for periodically reviewing these Terms.</p>
+
+            <h2>12. Open Source Nature</h2>
+            <p>The QDR platform is released under the MIT License. You may download, modify, host, and distribute the platform code freely under the same license. Note that the underlying DSS corpus has its own licensing restrictions (CC-BY-NC 4.0) that apply independently of the platform license.</p>
+
+            <h2>13. Governing Law</h2>
+            <p>These Terms shall be governed by the laws of the United States, without regard to conflict of law principles.</p>
+
+            <h2>14. Severability</h2>
+            <p>If any provision of these Terms is found to be unenforceable, the remaining provisions shall remain in full force and effect.</p>
+
+            <p style="margin-top:2.5rem;text-align:center;font-style:italic;color:#C4B5A0;">By using qumran.dev, you acknowledge that you have read, understood, and agree to be bound by these Terms of Service.</p>
+        </div>
+    </div>
+
+    <footer class="footer">
+        © 2026 Michael Muzar.&nbsp;<a href="https://github.com/evenderekh/qdr" target="_blank" rel="noopener" aria-label="GitHub"><img src="/static/github-logo-small.png" alt="GitHub" style="width:14px;height:14px;vertical-align:middle;opacity:0.5;margin:0 5px;"></a>&nbsp;<a href="/license">LICENSE</a>&nbsp;·&nbsp;<a href="/about">About</a>&nbsp;·&nbsp;<span id="contact-link" style="cursor:pointer;color:#8a7040;">Contact</span>&nbsp;·&nbsp;<a href="/privacy">Privacy</a>&nbsp;·&nbsp;<a href="/terms">Terms</a>
+    </footer>
+
+    <script>
+        document.getElementById('contact-link').addEventListener('click', function() {
+            this.textContent = 'support AT qumran.dev';
+            this.style.cursor = 'default';
+        });
+    </script>
+</body>
+</html>
