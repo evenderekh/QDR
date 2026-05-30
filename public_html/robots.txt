@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://qumran.dev/sitemap.xml
